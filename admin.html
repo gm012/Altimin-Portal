@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Admin | Altimin Client Portal</title>
+
+    <meta
+        name="description"
+        content="Altimin Client Portal administration."
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="admin.css"
+    >
+
+</head>
+
+<body>
+
+    <!-- =====================================================
+         MOBILE TOPBAR
+    ====================================================== -->
+
+    <header class="mobile-topbar">
+
+        <img
+            src="images/altimin-logo.png"
+            alt="Altimin Limited"
+            class="mobile-logo"
+        >
+
+        <button
+            type="button"
+            class="mobile-menu-button"
+            id="mobileMenuButton"
+            aria-label="Open admin navigation"
+        >
+            <span></span>
+            <span></span>
+        </button>
+
+    </header>
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside
+        class="admin-sidebar"
+        id="adminSidebar"
+    >
+
+        <div class="sidebar-header">
+
+            <a
+                href="https://altimin.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="sidebar-logo-link"
+            >
+
+                <span class="sidebar-logo-frame">
+
+                    <img
+                        src="images/altimin-logo.png"
+                        alt="Altimin Limited"
+                        class="sidebar-logo"
+                    >
+
+                </span>
+
+            </a>
+
+            <span class="sidebar-context">
+                ADMIN
+            </span>
+
+        </div>
+
+
+        <nav class="sidebar-nav">
+
+            <button
+                type="button"
+                class="sidebar-link active"
+                data-section="overview"
+            >
+                <span class="nav-number">
+                    01
+                </span>
+
+                <span>
+                    Overview
+                </span>
+            </button>
+
+
+            <button
+                type="button"
+                class="sidebar-link"
+                data-section="clients"
+            >
+                <span class="nav-number">
+                    02
+                </span>
+
+                <span>
+                    Clients
+                </span>
+            </button>
+
+
+            <button
+                type="button"
+                class="sidebar-link"
+                data-section="services"
+            >
+                <span class="nav-number">
+                    03
+                </span>
+
+                <span>
+                    Services
+                </span>
+            </button>
+
+
+            <button
+                type="button"
+                class="sidebar-link"
+                data-section="hardware"
+            >
+                <span class="nav-number">
+                    04
+                </span>
+
+                <span>
+                    Hardware
+                </span>
+            </button>
+
+
+            <button
+                type="button"
+                class="sidebar-link"
+                data-section="requests"
+            >
+                <span class="nav-number">
+                    05
+                </span>
+
+                <span>
+                    Requests
+                </span>
+
+                <span
+                    class="nav-count"
+                    id="sidebarRequestCount"
+                >
+                    0
+                </span>
+            </button>
+
+        </nav>
+
+
+        <div class="sidebar-account">
+
+            <span class="admin-avatar">
+                A
+            </span>
+
+            <div>
+
+                <strong>
+                    Altimin Admin
+                </strong>
+
+                <span>
+                    Internal access
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <a
+            href="index.html"
+            class="return-link"
+        >
+            ← Client portal
+        </a>
+
+    </aside>
+
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="admin-main">
+
+        <!-- =================================================
+             OVERVIEW
+        ================================================== -->
+
+        <section
+            class="admin-section active"
+            id="section-overview"
+        >
+
+            <header class="page-header">
+
+                <div>
+
+                    <span class="page-eyebrow">
+                        ALTIMIN / CLIENT PORTAL ADMIN
+                    </span>
+
+                    <h1>
+                        Portal
+                        <span>overview.</span>
+                    </h1>
+
+                    <p>
+                        Manage client accounts, services, hardware
+                        and incoming requests from one place.
+                    </p>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    data-action="add-client"
+                >
+                    + Add Client
+                </button>
+
+            </header>
+
+
+            <div class="summary-grid">
+
+                <article class="summary-card primary">
+
+                    <span>
+                        ACTIVE CLIENTS
+                    </span>
+
+                    <strong id="overviewClientCount">
+                        00
+                    </strong>
+
+                    <small>
+                        Client organisations with portal access
+                    </small>
+
+                </article>
+
+
+                <article class="summary-card">
+
+                    <span>
+                        ACTIVE SERVICES
+                    </span>
+
+                    <strong id="overviewServiceCount">
+                        00
+                    </strong>
+
+                    <small>
+                        Services available across the portal
+                    </small>
+
+                </article>
+
+
+                <article class="summary-card">
+
+                    <span>
+                        HARDWARE ITEMS
+                    </span>
+
+                    <strong id="overviewHardwareCount">
+                        00
+                    </strong>
+
+                    <small>
+                        Hardware categories available to request
+                    </small>
+
+                </article>
+
+
+                <article class="summary-card">
+
+                    <span>
+                        OPEN REQUESTS
+                    </span>
+
+                    <strong id="overviewRequestCount">
+                        00
+                    </strong>
+
+                    <small>
+                        Requests requiring Altimin attention
+                    </small>
+
+                </article>
+
+            </div>
+
+
+            <section class="content-block">
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <span>
+                            REQUESTS / RECENT
+                        </span>
+
+                        <h2>
+                            Latest client requests
+                        </h2>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="text-action"
+                        data-go-section="requests"
+                    >
+                        View all requests →
+                    </button>
+
+                </div>
+
+
+                <div class="table-shell">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+                                <th>REQUEST</th>
+                                <th>CLIENT</th>
+                                <th>TYPE</th>
+                                <th>STATUS</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="overviewRequestsBody"></tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        </section>
+
+
+        <!-- =================================================
+             CLIENTS
+        ================================================== -->
+
+        <section
+            class="admin-section"
+            id="section-clients"
+        >
+
+            <header class="page-header">
+
+                <div>
+
+                    <span class="page-eyebrow">
+                        ADMIN / CLIENTS
+                    </span>
+
+                    <h1>
+                        Client
+                        <span>accounts.</span>
+                    </h1>
+
+                    <p>
+                        Manage the organisations that have access
+                        to the Altimin Client Portal.
+                    </p>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    data-action="add-client"
+                >
+                    + Add Client
+                </button>
+
+            </header>
+
+
+            <div class="toolbar">
+
+                <div class="search-field">
+
+                    <input
+                        type="search"
+                        id="clientSearch"
+                        placeholder="Search clients..."
+                    >
+
+                </div>
+
+                <span
+                    class="record-count"
+                    id="clientRecordCount"
+                >
+                    0 clients
+                </span>
+
+            </div>
+
+
+            <div class="table-shell">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>CLIENT</th>
+                            <th>PRIMARY CONTACT</th>
+                            <th>REGION</th>
+                            <th>SERVICES</th>
+                            <th>STATUS</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="clientsTableBody"></tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             SERVICES
+        ================================================== -->
+
+        <section
+            class="admin-section"
+            id="section-services"
+        >
+
+            <header class="page-header">
+
+                <div>
+
+                    <span class="page-eyebrow">
+                        ADMIN / SERVICES
+                    </span>
+
+                    <h1>
+                        Service
+                        <span>catalogue.</span>
+                    </h1>
+
+                    <p>
+                        Control which Altimin services can be
+                        assigned or requested through the portal.
+                    </p>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    data-action="add-service"
+                >
+                    + Add Service
+                </button>
+
+            </header>
+
+
+            <div
+                class="catalogue-grid"
+                id="servicesGrid"
+            ></div>
+
+        </section>
+
+
+        <!-- =================================================
+             HARDWARE
+        ================================================== -->
+
+        <section
+            class="admin-section"
+            id="section-hardware"
+        >
+
+            <header class="page-header">
+
+                <div>
+
+                    <span class="page-eyebrow">
+                        ADMIN / HARDWARE
+                    </span>
+
+                    <h1>
+                        Hardware
+                        <span>catalogue.</span>
+                    </h1>
+
+                    <p>
+                        Manage the hardware categories clients
+                        can request through their account.
+                    </p>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    data-action="add-hardware"
+                >
+                    + Add Hardware
+                </button>
+
+            </header>
+
+
+            <div
+                class="catalogue-grid"
+                id="hardwareGrid"
+            ></div>
+
+        </section>
+
+
+        <!-- =================================================
+             REQUESTS
+        ================================================== -->
+
+        <section
+            class="admin-section"
+            id="section-requests"
+        >
+
+            <header class="page-header">
+
+                <div>
+
+                    <span class="page-eyebrow">
+                        ADMIN / REQUESTS
+                    </span>
+
+                    <h1>
+                        Client
+                        <span>requests.</span>
+                    </h1>
+
+                    <p>
+                        Review incoming service and hardware
+                        requests and update their progress.
+                    </p>
+
+                </div>
+
+            </header>
+
+
+            <div class="table-shell">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>REQUEST</th>
+                            <th>CLIENT</th>
+                            <th>TYPE</th>
+                            <th>DATE</th>
+                            <th>STATUS</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="requestsTableBody"></tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =====================================================
+         DRAWER
+    ====================================================== -->
+
+    <div
+        class="drawer-backdrop"
+        id="drawerBackdrop"
+    ></div>
+
+
+    <aside
+        class="admin-drawer"
+        id="adminDrawer"
+        aria-hidden="true"
+    >
+
+        <header class="drawer-header">
+
+            <div>
+
+                <span id="drawerEyebrow">
+                    NEW RECORD
+                </span>
+
+                <h2 id="drawerTitle">
+                    Add client
+                </h2>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="drawer-close"
+                id="drawerClose"
+                aria-label="Close"
+            >
+                ×
+            </button>
+
+        </header>
+
+
+        <form
+            class="drawer-form"
+            id="drawerForm"
+        >
+
+            <div id="drawerFields"></div>
+
+
+            <button
+                type="submit"
+                class="primary-button drawer-submit"
+            >
+                Save
+            </button>
+
+        </form>
+
+    </aside>
+
+
+<script src="portal-store.js"></script>
+<script src="admin.js"></script>
+
+</body>
+
+</html>

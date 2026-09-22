@@ -1,0 +1,1372 @@
+// =========================================================
+// ALTIMIN CLIENT PORTAL
+// ADMIN
+// =========================================================
+
+let state =
+    PortalStore.load();
+
+
+let drawerMode =
+    null;
+
+
+// =========================================================
+// ELEMENTS
+// =========================================================
+
+const sectionButtons =
+    document.querySelectorAll(
+        "[data-section]"
+    );
+
+const sections =
+    document.querySelectorAll(
+        ".admin-section"
+    );
+
+const adminSidebar =
+    document.getElementById(
+        "adminSidebar"
+    );
+
+const mobileMenuButton =
+    document.getElementById(
+        "mobileMenuButton"
+    );
+
+const clientsTableBody =
+    document.getElementById(
+        "clientsTableBody"
+    );
+
+const servicesGrid =
+    document.getElementById(
+        "servicesGrid"
+    );
+
+const hardwareGrid =
+    document.getElementById(
+        "hardwareGrid"
+    );
+
+const requestsTableBody =
+    document.getElementById(
+        "requestsTableBody"
+    );
+
+const overviewRequestsBody =
+    document.getElementById(
+        "overviewRequestsBody"
+    );
+
+const clientSearch =
+    document.getElementById(
+        "clientSearch"
+    );
+
+const adminDrawer =
+    document.getElementById(
+        "adminDrawer"
+    );
+
+const drawerBackdrop =
+    document.getElementById(
+        "drawerBackdrop"
+    );
+
+const drawerClose =
+    document.getElementById(
+        "drawerClose"
+    );
+
+const drawerForm =
+    document.getElementById(
+        "drawerForm"
+    );
+
+const drawerFields =
+    document.getElementById(
+        "drawerFields"
+    );
+
+const drawerTitle =
+    document.getElementById(
+        "drawerTitle"
+    );
+
+const drawerEyebrow =
+    document.getElementById(
+        "drawerEyebrow"
+    );
+
+
+// =========================================================
+// STATE
+// =========================================================
+
+function refreshState() {
+
+    state =
+        PortalStore.load();
+
+}
+
+
+function saveState() {
+
+    PortalStore.save(
+        state
+    );
+
+}
+
+
+// =========================================================
+// NAVIGATION
+// =========================================================
+
+function openSection(
+    name
+) {
+
+    sections.forEach(
+        section => {
+
+            section.classList.toggle(
+                "active",
+                section.id ===
+                    `section-${name}`
+            );
+
+        }
+    );
+
+
+    sectionButtons.forEach(
+        button => {
+
+            button.classList.toggle(
+                "active",
+                button.dataset.section ===
+                    name
+            );
+
+        }
+    );
+
+
+    if (adminSidebar) {
+
+        adminSidebar.classList.remove(
+            "mobile-open"
+        );
+
+    }
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+}
+
+
+sectionButtons.forEach(
+    button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                openSection(
+                    button.dataset.section
+                );
+
+            }
+        );
+
+    }
+);
+
+
+document
+    .querySelectorAll(
+        "[data-go-section]"
+    )
+    .forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    openSection(
+                        button.dataset.goSection
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+// =========================================================
+// HELPERS
+// =========================================================
+
+function formatCount(
+    number
+) {
+
+    return String(
+        number
+    ).padStart(
+        2,
+        "0"
+    );
+
+}
+
+
+function getClientName(
+    clientId
+) {
+
+    const client =
+        PortalStore.getClientById(
+            state,
+            clientId
+        );
+
+
+    return client
+        ? client.company
+        : "Unknown Client";
+
+}
+
+
+function statusClass(
+    status
+) {
+
+    if (
+        status === "Active" ||
+        status === "Completed"
+    ) {
+
+        return "status-active";
+
+    }
+
+
+    if (
+        status === "Under Review"
+    ) {
+
+        return "status-review";
+
+    }
+
+
+    if (
+        status === "Approved"
+    ) {
+
+        return "status-approved";
+
+    }
+
+
+    return "status-inactive";
+
+}
+
+
+// =========================================================
+// OVERVIEW
+// =========================================================
+
+function renderOverview() {
+
+    const activeClients =
+        state.clients.filter(
+            client =>
+                client.status ===
+                "Active"
+        );
+
+
+    const activeServices =
+        state.services.filter(
+            service =>
+                service.status ===
+                "Active"
+        );
+
+
+    const activeHardware =
+        state.hardware.filter(
+            item =>
+                item.status ===
+                "Active"
+        );
+
+
+    const openRequests =
+        state.requests.filter(
+            request =>
+                request.status !==
+                "Completed"
+        );
+
+
+    document.getElementById(
+        "overviewClientCount"
+    ).textContent =
+        formatCount(
+            activeClients.length
+        );
+
+
+    document.getElementById(
+        "overviewServiceCount"
+    ).textContent =
+        formatCount(
+            activeServices.length
+        );
+
+
+    document.getElementById(
+        "overviewHardwareCount"
+    ).textContent =
+        formatCount(
+            activeHardware.length
+        );
+
+
+    document.getElementById(
+        "overviewRequestCount"
+    ).textContent =
+        formatCount(
+            openRequests.length
+        );
+
+
+    document.getElementById(
+        "sidebarRequestCount"
+    ).textContent =
+        openRequests.length;
+
+
+    overviewRequestsBody.innerHTML =
+        state.requests
+            .slice()
+            .reverse()
+            .slice(
+                0,
+                5
+            )
+            .map(
+                request => `
+                    <tr>
+
+                        <td>
+
+                            <strong class="table-title">
+                                ${request.title}
+                            </strong>
+
+                            <span class="table-subtitle">
+                                ${request.id}
+                            </span>
+
+                        </td>
+
+                        <td>
+                            ${getClientName(
+                                request.clientId
+                            )}
+                        </td>
+
+                        <td>
+                            ${request.type}
+                        </td>
+
+                        <td>
+
+                            <span class="status-pill ${statusClass(
+                                request.status
+                            )}">
+                                ${request.status}
+                            </span>
+
+                        </td>
+
+                    </tr>
+                `
+            )
+            .join("");
+
+}
+
+
+// =========================================================
+// CLIENTS
+// =========================================================
+
+function renderClients(
+    query = ""
+) {
+
+    const normalizedQuery =
+        query
+            .trim()
+            .toLowerCase();
+
+
+    const filtered =
+        state.clients.filter(
+            client => {
+
+                const searchable =
+                    `
+                        ${client.company}
+                        ${client.contact}
+                        ${client.email}
+                        ${client.region}
+                    `
+                        .toLowerCase();
+
+
+                return searchable.includes(
+                    normalizedQuery
+                );
+
+            }
+        );
+
+
+    clientsTableBody.innerHTML =
+        filtered
+            .map(
+                client => {
+
+                    const serviceCount =
+                        Array.isArray(
+                            client.serviceIds
+                        )
+                            ? client.serviceIds.length
+                            : 0;
+
+
+                    return `
+                        <tr>
+
+                            <td>
+
+                                <strong class="table-title">
+                                    ${client.company}
+                                </strong>
+
+                                <span class="table-subtitle">
+                                    ${client.email}
+                                </span>
+
+                            </td>
+
+                            <td>
+                                ${client.contact}
+                            </td>
+
+                            <td>
+                                ${client.region}
+                            </td>
+
+                            <td>
+                                ${serviceCount}
+                            </td>
+
+                            <td>
+
+                                <span class="status-pill ${statusClass(
+                                    client.status
+                                )}">
+                                    ${client.status}
+                                </span>
+
+                            </td>
+
+                        </tr>
+                    `;
+
+                }
+            )
+            .join("");
+
+
+    document.getElementById(
+        "clientRecordCount"
+    ).textContent =
+        `${filtered.length} client${
+            filtered.length === 1
+                ? ""
+                : "s"
+        }`;
+
+}
+
+
+// =========================================================
+// SERVICES
+// =========================================================
+
+function renderServices() {
+
+    servicesGrid.innerHTML =
+        state.services
+            .map(
+                service => `
+                    <article class="catalogue-card">
+
+                        <span class="catalogue-code">
+                            ${service.code}
+                        </span>
+
+                        <h3>
+                            ${service.name}
+                        </h3>
+
+                        <p>
+                            ${service.description}
+                        </p>
+
+                        <div class="catalogue-footer">
+
+                            <span>
+                                ${service.category || "SERVICE"}
+                            </span>
+
+                            <span class="status-pill ${statusClass(
+                                service.status
+                            )}">
+                                ${service.status}
+                            </span>
+
+                        </div>
+
+                    </article>
+                `
+            )
+            .join("");
+
+}
+
+
+// =========================================================
+// HARDWARE
+// =========================================================
+
+function renderHardware() {
+
+    hardwareGrid.innerHTML =
+        state.hardware
+            .map(
+                item => `
+                    <article class="catalogue-card">
+
+                        <span class="catalogue-code">
+                            ${item.code}
+                        </span>
+
+                        <h3>
+                            ${item.name}
+                        </h3>
+
+                        <p>
+                            ${item.description}
+                        </p>
+
+                        <div class="catalogue-footer">
+
+                            <span>
+                                HARDWARE
+                            </span>
+
+                            <span class="status-pill ${statusClass(
+                                item.status
+                            )}">
+                                ${item.status}
+                            </span>
+
+                        </div>
+
+                    </article>
+                `
+            )
+            .join("");
+
+}
+
+
+// =========================================================
+// REQUESTS
+// =========================================================
+
+function renderRequests() {
+
+    requestsTableBody.innerHTML =
+        state.requests
+            .slice()
+            .reverse()
+            .map(
+                request => `
+                    <tr>
+
+                        <td>
+
+                            <strong class="table-title">
+                                ${request.title}
+                            </strong>
+
+                            <span class="table-subtitle">
+                                ${request.id}
+                            </span>
+
+                        </td>
+
+                        <td>
+                            ${getClientName(
+                                request.clientId
+                            )}
+                        </td>
+
+                        <td>
+                            ${request.type}
+                        </td>
+
+                        <td>
+                            ${request.date}
+                        </td>
+
+                        <td>
+
+                            <select
+                                class="status-select"
+                                data-request-id="${request.id}"
+                            >
+
+                                ${[
+                                    "Under Review",
+                                    "Approved",
+                                    "Completed"
+                                ]
+                                    .map(
+                                        status => `
+                                            <option
+                                                value="${status}"
+                                                ${
+                                                    status === request.status
+                                                        ? "selected"
+                                                        : ""
+                                                }
+                                            >
+                                                ${status}
+                                            </option>
+                                        `
+                                    )
+                                    .join("")}
+
+                            </select>
+
+                        </td>
+
+                    </tr>
+                `
+            )
+            .join("");
+
+
+    document
+        .querySelectorAll(
+            "[data-request-id]"
+        )
+        .forEach(
+            select => {
+
+                select.addEventListener(
+                    "change",
+                    () => {
+
+                        refreshState();
+
+
+                        const request =
+                            state.requests.find(
+                                item =>
+                                    item.id ===
+                                    select.dataset.requestId
+                            );
+
+
+                        if (!request) {
+
+                            return;
+
+                        }
+
+
+                        request.status =
+                            select.value;
+
+
+                        saveState();
+
+                        renderAll();
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+// =========================================================
+// DRAWER
+// =========================================================
+
+function openDrawer(
+    mode
+) {
+
+    drawerMode =
+        mode;
+
+
+    if (
+        mode === "client"
+    ) {
+
+        drawerEyebrow.textContent =
+            "NEW CLIENT";
+
+        drawerTitle.textContent =
+            "Add client";
+
+
+        drawerFields.innerHTML = `
+            <div class="drawer-field">
+
+                <label>
+                    COMPANY NAME
+                </label>
+
+                <input
+                    id="fieldCompany"
+                    type="text"
+                    required
+                >
+
+            </div>
+
+
+            <div class="drawer-field">
+
+                <label>
+                    PRIMARY CONTACT
+                </label>
+
+                <input
+                    id="fieldContact"
+                    type="text"
+                    required
+                >
+
+            </div>
+
+
+            <div class="drawer-field">
+
+                <label>
+                    EMAIL ADDRESS
+                </label>
+
+                <input
+                    id="fieldEmail"
+                    type="email"
+                    required
+                >
+
+            </div>
+
+
+            <div class="drawer-field">
+
+                <label>
+                    REGION
+                </label>
+
+                <select
+                    id="fieldRegion"
+                    required
+                >
+
+                    <option value="South Africa">
+                        South Africa
+                    </option>
+
+                    <option value="United Kingdom">
+                        United Kingdom
+                    </option>
+
+                    <option value="Other">
+                        Other
+                    </option>
+
+                </select>
+
+            </div>
+        `;
+
+    }
+
+
+    if (
+        mode === "service"
+    ) {
+
+        drawerEyebrow.textContent =
+            "SERVICE CATALOGUE";
+
+        drawerTitle.textContent =
+            "Add service";
+
+
+        drawerFields.innerHTML = `
+            <div class="drawer-field">
+
+                <label>
+                    SERVICE NAME
+                </label>
+
+                <input
+                    id="fieldName"
+                    type="text"
+                    required
+                >
+
+            </div>
+
+
+            <div class="drawer-field">
+
+                <label>
+                    CODE
+                </label>
+
+                <input
+                    id="fieldCode"
+                    type="text"
+                    maxlength="6"
+                    required
+                >
+
+            </div>
+
+
+            <div class="drawer-field">
+
+                <label>
+                    CATEGORY
+                </label>
+
+                <input
+                    id="fieldCategory"
+                    type="text"
+                    placeholder="e.g. Cloud & Productivity"
+                    required
+                >
+
+            </div>
+
+
+            <div class="drawer-field">
+
+                <label>
+                    DESCRIPTION
+                </label>
+
+                <input
+                    id="fieldDescription"
+                    type="text"
+                    required
+                >
+
+            </div>
+        `;
+
+    }
+
+
+    if (
+        mode === "hardware"
+    ) {
+
+        drawerEyebrow.textContent =
+            "HARDWARE CATALOGUE";
+
+        drawerTitle.textContent =
+            "Add hardware";
+
+
+        drawerFields.innerHTML = `
+            <div class="drawer-field">
+
+                <label>
+                    HARDWARE NAME
+                </label>
+
+                <input
+                    id="fieldName"
+                    type="text"
+                    required
+                >
+
+            </div>
+
+
+            <div class="drawer-field">
+
+                <label>
+                    CODE
+                </label>
+
+                <input
+                    id="fieldCode"
+                    type="text"
+                    maxlength="6"
+                    required
+                >
+
+            </div>
+
+
+            <div class="drawer-field">
+
+                <label>
+                    DESCRIPTION
+                </label>
+
+                <input
+                    id="fieldDescription"
+                    type="text"
+                    required
+                >
+
+            </div>
+        `;
+
+    }
+
+
+    adminDrawer.classList.add(
+        "open"
+    );
+
+    drawerBackdrop.classList.add(
+        "visible"
+    );
+
+    adminDrawer.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+}
+
+
+// =========================================================
+// CLOSE DRAWER
+// =========================================================
+
+function closeDrawer() {
+
+    adminDrawer.classList.remove(
+        "open"
+    );
+
+    drawerBackdrop.classList.remove(
+        "visible"
+    );
+
+    adminDrawer.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+
+    drawerMode =
+        null;
+
+
+    drawerForm.reset();
+
+}
+
+
+// =========================================================
+// CREATE RECORD
+// =========================================================
+
+drawerForm.addEventListener(
+    "submit",
+    event => {
+
+        event.preventDefault();
+
+
+        refreshState();
+
+
+        if (
+            drawerMode === "client"
+        ) {
+
+            state.clients.push({
+
+                id:
+                    Date.now(),
+
+                company:
+                    document
+                        .getElementById(
+                            "fieldCompany"
+                        )
+                        .value
+                        .trim(),
+
+                contact:
+                    document
+                        .getElementById(
+                            "fieldContact"
+                        )
+                        .value
+                        .trim(),
+
+                email:
+                    document
+                        .getElementById(
+                            "fieldEmail"
+                        )
+                        .value
+                        .trim(),
+
+                region:
+                    document
+                        .getElementById(
+                            "fieldRegion"
+                        )
+                        .value,
+
+                status:
+                    "Active",
+
+                serviceIds:
+                    []
+
+            });
+
+        }
+
+
+        if (
+            drawerMode === "service"
+        ) {
+
+            state.services.push({
+
+                id:
+                    Date.now(),
+
+                name:
+                    document
+                        .getElementById(
+                            "fieldName"
+                        )
+                        .value
+                        .trim(),
+
+                code:
+                    document
+                        .getElementById(
+                            "fieldCode"
+                        )
+                        .value
+                        .trim()
+                        .toUpperCase(),
+
+                category:
+                    document
+                        .getElementById(
+                            "fieldCategory"
+                        )
+                        .value
+                        .trim(),
+
+                description:
+                    document
+                        .getElementById(
+                            "fieldDescription"
+                        )
+                        .value
+                        .trim(),
+
+                status:
+                    "Active"
+
+            });
+
+        }
+
+
+        if (
+            drawerMode === "hardware"
+        ) {
+
+            state.hardware.push({
+
+                id:
+                    Date.now(),
+
+                name:
+                    document
+                        .getElementById(
+                            "fieldName"
+                        )
+                        .value
+                        .trim(),
+
+                code:
+                    document
+                        .getElementById(
+                            "fieldCode"
+                        )
+                        .value
+                        .trim()
+                        .toUpperCase(),
+
+                description:
+                    document
+                        .getElementById(
+                            "fieldDescription"
+                        )
+                        .value
+                        .trim(),
+
+                status:
+                    "Active"
+
+            });
+
+        }
+
+
+        saveState();
+
+        closeDrawer();
+
+        renderAll();
+
+    }
+);
+
+
+// =========================================================
+// DRAWER BUTTONS
+// =========================================================
+
+document
+    .querySelectorAll(
+        "[data-action]"
+    )
+    .forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    const action =
+                        button.dataset.action;
+
+
+                    if (
+                        action === "add-client"
+                    ) {
+
+                        openDrawer(
+                            "client"
+                        );
+
+                    }
+
+
+                    if (
+                        action === "add-service"
+                    ) {
+
+                        openDrawer(
+                            "service"
+                        );
+
+                    }
+
+
+                    if (
+                        action === "add-hardware"
+                    ) {
+
+                        openDrawer(
+                            "hardware"
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+drawerClose.addEventListener(
+    "click",
+    closeDrawer
+);
+
+
+drawerBackdrop.addEventListener(
+    "click",
+    closeDrawer
+);
+
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key === "Escape"
+        ) {
+
+            closeDrawer();
+
+        }
+
+    }
+);
+
+
+// =========================================================
+// SEARCH
+// =========================================================
+
+clientSearch.addEventListener(
+    "input",
+    () => {
+
+        renderClients(
+            clientSearch.value
+        );
+
+    }
+);
+
+
+// =========================================================
+// MOBILE SIDEBAR
+// =========================================================
+
+if (
+    mobileMenuButton &&
+    adminSidebar
+) {
+
+    mobileMenuButton.addEventListener(
+        "click",
+        () => {
+
+            adminSidebar.classList.toggle(
+                "mobile-open"
+            );
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// CROSS-PAGE SYNC
+// =========================================================
+
+window.addEventListener(
+    "storage",
+    event => {
+
+        if (
+            event.key ===
+            "altiminPortalV2"
+        ) {
+
+            renderAll();
+
+        }
+
+    }
+);
+
+
+window.addEventListener(
+    "altiminPortalUpdated",
+    () => {
+
+        renderAll();
+
+    }
+);
+
+
+// =========================================================
+// RENDER
+// =========================================================
+
+function renderAll() {
+
+    refreshState();
+
+
+    renderOverview();
+
+
+    renderClients(
+        clientSearch?.value ||
+        ""
+    );
+
+
+    renderServices();
+
+    renderHardware();
+
+    renderRequests();
+
+}
+
+
+renderAll();
