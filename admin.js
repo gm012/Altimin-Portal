@@ -706,14 +706,27 @@ function openClientManager(
 
         <div class="client-management-summary">
 
-            <span>
-                ACCOUNT MANAGEMENT
-            </span>
+            <div class="client-management-summary-copy">
 
-            <p>
-                Update client information and control which
-                Altimin services are active on this account.
-            </p>
+                <span>
+                    ACCOUNT MANAGEMENT
+                </span>
+
+                <p>
+                    Update client information and control which
+                    Altimin services are active on this account.
+                </p>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="view-client-portal-button"
+                id="viewClientPortalButton"
+            >
+                View Portal →
+            </button>
 
         </div>
 
@@ -902,6 +915,53 @@ function openClientManager(
         </div>
 
     `;
+
+
+    const viewClientPortalButton =
+        document.getElementById(
+            "viewClientPortalButton"
+        );
+
+
+    if (viewClientPortalButton) {
+
+        viewClientPortalButton.addEventListener(
+            "click",
+            () => {
+
+                refreshState();
+
+
+                const selectedClient =
+                    PortalStore.getClientById(
+                        state,
+                        clientId
+                    );
+
+
+                if (!selectedClient) {
+
+                    return;
+
+                }
+
+
+                state.activeClientId =
+                    selectedClient.id;
+
+
+                saveState();
+
+
+                window.open(
+                    "dashboard.html",
+                    "_blank"
+                );
+
+            }
+        );
+
+    }
 
 
     openDrawerShell();

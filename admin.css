@@ -2304,3 +2304,69 @@ tr:last-child td {
     }
 
 }
+/* =========================================================
+   VIEW AS CLIENT
+========================================================= */
+
+.client-management-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.client-management-summary-copy {
+    flex: 1;
+    min-width: 0;
+}
+
+.client-management-summary-copy p {
+    max-width: 360px;
+}
+
+
+.view-client-portal-button {
+    flex-shrink: 0;
+    min-height: 42px;
+    padding: 0 17px;
+
+    border: 1px solid #c7d6f5;
+    border-radius: 999px;
+
+    background: #ffffff;
+    color: #1558e8;
+
+    font-family: "Inter", sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+
+    cursor: pointer;
+
+    transition:
+        background-color 180ms ease,
+        border-color 180ms ease,
+        color 180ms ease,
+        transform 180ms ease;
+}
+
+.view-client-portal-button:hover {
+    border-color: #1558e8;
+    background: #1558e8;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+
+@media (max-width: 640px) {
+
+    .client-management-summary {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .view-client-portal-button {
+        width: 100%;
+    }
+
+}
