@@ -6,8 +6,10 @@
 let state =
     PortalStore.load();
 
-
 let drawerMode =
+    null;
+
+let selectedClientId =
     null;
 
 
@@ -98,6 +100,11 @@ const drawerTitle =
 const drawerEyebrow =
     document.getElementById(
         "drawerEyebrow"
+    );
+
+const drawerSubmit =
+    document.querySelector(
+        ".drawer-submit"
     );
 
 
@@ -464,7 +471,12 @@ function renderClients(
 
 
                     return `
-                        <tr>
+                        <tr
+                            class="client-manage-row"
+                            data-client-id="${client.id}"
+                            tabindex="0"
+                            title="Manage ${client.company}"
+                        >
 
                             <td>
 
@@ -516,6 +528,383 @@ function renderClients(
                 ? ""
                 : "s"
         }`;
+
+
+    bindClientRows();
+
+}
+
+
+// =========================================================
+// CLIENT ROW INTERACTION
+// =========================================================
+
+function bindClientRows() {
+
+    document
+        .querySelectorAll(
+            ".client-manage-row"
+        )
+        .forEach(
+            row => {
+
+                const openClient =
+                    () => {
+
+                        openClientManager(
+                            Number(
+                                row.dataset.clientId
+                            )
+                        );
+
+                    };
+
+
+                row.addEventListener(
+                    "click",
+                    openClient
+                );
+
+
+                row.addEventListener(
+                    "keydown",
+                    event => {
+
+                        if (
+                            event.key === "Enter" ||
+                            event.key === " "
+                        ) {
+
+                            event.preventDefault();
+
+                            openClient();
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+// =========================================================
+// CLIENT MANAGEMENT
+// =========================================================
+
+function openClientManager(
+    clientId
+) {
+
+    refreshState();
+
+
+    const client =
+        PortalStore.getClientById(
+            state,
+            clientId
+        );
+
+
+    if (!client) {
+
+        return;
+
+    }
+
+
+    drawerMode =
+        "manage-client";
+
+    selectedClientId =
+        client.id;
+
+
+    drawerEyebrow.textContent =
+        "CLIENT ACCOUNT";
+
+    drawerTitle.textContent =
+        client.company;
+
+
+    if (drawerSubmit) {
+
+        drawerSubmit.textContent =
+            "Save Changes";
+
+    }
+
+
+    const clientServiceIds =
+        Array.isArray(
+            client.serviceIds
+        )
+            ? client.serviceIds.map(
+                Number
+            )
+            : [];
+
+
+    const serviceOptions =
+        state.services
+            .map(
+                service => {
+
+                    const assigned =
+                        clientServiceIds.includes(
+                            Number(
+                                service.id
+                            )
+                        );
+
+
+                    return `
+                        <label class="client-service-option">
+
+                            <span class="client-service-check">
+
+                                <input
+                                    type="checkbox"
+                                    name="assignedServices"
+                                    value="${service.id}"
+                                    ${assigned ? "checked" : ""}
+                                >
+
+                                <span class="client-service-box"></span>
+
+                            </span>
+
+
+                            <span class="client-service-copy">
+
+                                <strong>
+                                    ${service.name}
+                                </strong>
+
+                                <small>
+                                    ${service.category || "Altimin Service"}
+                                </small>
+
+                            </span>
+
+
+                            <span class="client-service-code">
+                                ${service.code}
+                            </span>
+
+                        </label>
+                    `;
+
+                }
+            )
+            .join("");
+
+
+    drawerFields.innerHTML = `
+
+        <div class="client-management-summary">
+
+            <span>
+                ACCOUNT MANAGEMENT
+            </span>
+
+            <p>
+                Update client information and control which
+                Altimin services are active on this account.
+            </p>
+
+        </div>
+
+
+        <div class="drawer-field">
+
+            <label>
+                COMPANY NAME
+            </label>
+
+            <input
+                id="fieldCompany"
+                type="text"
+                value="${client.company}"
+                required
+            >
+
+        </div>
+
+
+        <div class="drawer-field">
+
+            <label>
+                PRIMARY CONTACT
+            </label>
+
+            <input
+                id="fieldContact"
+                type="text"
+                value="${client.contact}"
+                required
+            >
+
+        </div>
+
+
+        <div class="drawer-field">
+
+            <label>
+                EMAIL ADDRESS
+            </label>
+
+            <input
+                id="fieldEmail"
+                type="email"
+                value="${client.email}"
+                required
+            >
+
+        </div>
+
+
+        <div class="drawer-field">
+
+            <label>
+                REGION
+            </label>
+
+            <select
+                id="fieldRegion"
+                required
+            >
+
+                <option
+                    value="South Africa"
+                    ${
+                        client.region ===
+                        "South Africa"
+                            ? "selected"
+                            : ""
+                    }
+                >
+                    South Africa
+                </option>
+
+                <option
+                    value="United Kingdom"
+                    ${
+                        client.region ===
+                        "United Kingdom"
+                            ? "selected"
+                            : ""
+                    }
+                >
+                    United Kingdom
+                </option>
+
+                <option
+                    value="Other"
+                    ${
+                        client.region !==
+                            "South Africa" &&
+                        client.region !==
+                            "United Kingdom"
+                            ? "selected"
+                            : ""
+                    }
+                >
+                    Other
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="drawer-field">
+
+            <label>
+                ACCOUNT STATUS
+            </label>
+
+            <select
+                id="fieldStatus"
+                required
+            >
+
+                <option
+                    value="Active"
+                    ${
+                        client.status ===
+                        "Active"
+                            ? "selected"
+                            : ""
+                    }
+                >
+                    Active
+                </option>
+
+                <option
+                    value="Inactive"
+                    ${
+                        client.status ===
+                        "Inactive"
+                            ? "selected"
+                            : ""
+                    }
+                >
+                    Inactive
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="client-services-section">
+
+            <div class="client-services-heading">
+
+                <div>
+
+                    <span>
+                        SERVICES
+                    </span>
+
+                    <h3>
+                        Assigned services
+                    </h3>
+
+                </div>
+
+
+                <small>
+                    ${
+                        clientServiceIds.length
+                    } assigned
+                </small>
+
+            </div>
+
+
+            <div class="client-services-list">
+
+                ${
+                    serviceOptions ||
+                    `
+                        <div class="client-services-empty">
+                            No services are available yet.
+                        </div>
+                    `
+                }
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    openDrawerShell();
 
 }
 
@@ -669,7 +1058,8 @@ function renderRequests() {
                                             <option
                                                 value="${status}"
                                                 ${
-                                                    status === request.status
+                                                    status ===
+                                                    request.status
                                                         ? "selected"
                                                         : ""
                                                 }
@@ -737,7 +1127,29 @@ function renderRequests() {
 
 
 // =========================================================
-// DRAWER
+// DRAWER SHELL
+// =========================================================
+
+function openDrawerShell() {
+
+    adminDrawer.classList.add(
+        "open"
+    );
+
+    drawerBackdrop.classList.add(
+        "visible"
+    );
+
+    adminDrawer.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+}
+
+
+// =========================================================
+// ADD RECORD DRAWER
 // =========================================================
 
 function openDrawer(
@@ -746,6 +1158,17 @@ function openDrawer(
 
     drawerMode =
         mode;
+
+    selectedClientId =
+        null;
+
+
+    if (drawerSubmit) {
+
+        drawerSubmit.textContent =
+            "Save";
+
+    }
 
 
     if (
@@ -974,18 +1397,7 @@ function openDrawer(
     }
 
 
-    adminDrawer.classList.add(
-        "open"
-    );
-
-    drawerBackdrop.classList.add(
-        "visible"
-    );
-
-    adminDrawer.setAttribute(
-        "aria-hidden",
-        "false"
-    );
+    openDrawerShell();
 
 }
 
@@ -1013,6 +1425,17 @@ function closeDrawer() {
     drawerMode =
         null;
 
+    selectedClientId =
+        null;
+
+
+    if (drawerSubmit) {
+
+        drawerSubmit.textContent =
+            "Save";
+
+    }
+
 
     drawerForm.reset();
 
@@ -1020,7 +1443,7 @@ function closeDrawer() {
 
 
 // =========================================================
-// CREATE RECORD
+// SAVE DRAWER
 // =========================================================
 
 drawerForm.addEventListener(
@@ -1032,6 +1455,100 @@ drawerForm.addEventListener(
 
         refreshState();
 
+
+        // =====================================================
+        // MANAGE EXISTING CLIENT
+        // =====================================================
+
+        if (
+            drawerMode ===
+            "manage-client"
+        ) {
+
+            const client =
+                PortalStore.getClientById(
+                    state,
+                    selectedClientId
+                );
+
+
+            if (!client) {
+
+                return;
+
+            }
+
+
+            client.company =
+                document
+                    .getElementById(
+                        "fieldCompany"
+                    )
+                    .value
+                    .trim();
+
+
+            client.contact =
+                document
+                    .getElementById(
+                        "fieldContact"
+                    )
+                    .value
+                    .trim();
+
+
+            client.email =
+                document
+                    .getElementById(
+                        "fieldEmail"
+                    )
+                    .value
+                    .trim();
+
+
+            client.region =
+                document
+                    .getElementById(
+                        "fieldRegion"
+                    )
+                    .value;
+
+
+            client.status =
+                document
+                    .getElementById(
+                        "fieldStatus"
+                    )
+                    .value;
+
+
+            client.serviceIds =
+                Array.from(
+                    document.querySelectorAll(
+                        'input[name="assignedServices"]:checked'
+                    )
+                ).map(
+                    checkbox =>
+                        Number(
+                            checkbox.value
+                        )
+                );
+
+
+            saveState();
+
+            closeDrawer();
+
+            renderAll();
+
+            return;
+
+        }
+
+
+        // =====================================================
+        // ADD CLIENT
+        // =====================================================
 
         if (
             drawerMode === "client"
@@ -1084,6 +1601,10 @@ drawerForm.addEventListener(
         }
 
 
+        // =====================================================
+        // ADD SERVICE
+        // =====================================================
+
         if (
             drawerMode === "service"
         ) {
@@ -1133,6 +1654,10 @@ drawerForm.addEventListener(
 
         }
 
+
+        // =====================================================
+        // ADD HARDWARE
+        // =====================================================
 
         if (
             drawerMode === "hardware"
@@ -1206,7 +1731,8 @@ document
 
 
                     if (
-                        action === "add-client"
+                        action ===
+                        "add-client"
                     ) {
 
                         openDrawer(
@@ -1217,7 +1743,8 @@ document
 
 
                     if (
-                        action === "add-service"
+                        action ===
+                        "add-service"
                     ) {
 
                         openDrawer(
@@ -1228,7 +1755,8 @@ document
 
 
                     if (
-                        action === "add-hardware"
+                        action ===
+                        "add-hardware"
                     ) {
 
                         openDrawer(
@@ -1261,7 +1789,8 @@ document.addEventListener(
     event => {
 
         if (
-            event.key === "Escape"
+            event.key ===
+            "Escape"
         ) {
 
             closeDrawer();
