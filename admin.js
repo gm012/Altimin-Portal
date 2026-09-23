@@ -704,31 +704,31 @@ function openClientManager(
 
     drawerFields.innerHTML = `
 
-        <div class="client-management-summary">
+    <div class="client-management-summary">
 
-            <div class="client-management-summary-copy">
+        <div class="client-management-summary-copy">
 
-                <span>
-                    ACCOUNT MANAGEMENT
-                </span>
+            <span>
+                ACCOUNT MANAGEMENT
+            </span>
 
-                <p>
-                    Update client information and control which
-                    Altimin services are active on this account.
-                </p>
-
-            </div>
-
-
-            <button
-                type="button"
-                class="view-client-portal-button"
-                id="viewClientPortalButton"
-            >
-                View Portal →
-            </button>
+            <p>
+                Update client information and control which
+                Altimin services are active on this account.
+            </p>
 
         </div>
+
+
+        <button
+            type="button"
+            class="preview-client-button"
+            id="previewClientButton"
+        >
+            PREVIEW CLIENT PORTAL →
+        </button>
+
+    </div>
 
 
         <div class="drawer-field">
@@ -917,29 +917,29 @@ function openClientManager(
     `;
 
 
-    const viewClientPortalButton =
+    const previewClientButton =
         document.getElementById(
-            "viewClientPortalButton"
+            "previewClientButton"
         );
 
 
-    if (viewClientPortalButton) {
+    if (previewClientButton) {
 
-        viewClientPortalButton.addEventListener(
+        previewClientButton.addEventListener(
             "click",
             () => {
 
                 refreshState();
 
 
-                const selectedClient =
+                const client =
                     PortalStore.getClientById(
                         state,
                         clientId
                     );
 
 
-                if (!selectedClient) {
+                if (!client) {
 
                     return;
 
@@ -947,7 +947,7 @@ function openClientManager(
 
 
                 state.activeClientId =
-                    selectedClient.id;
+                    client.id;
 
 
                 saveState();
