@@ -38,9 +38,10 @@
         href="login.css"
     >
 
-<meta name="robots" content="noindex, nofollow">
-<meta name="referrer" content="no-referrer">
-<script src="portal-ui.js"></script>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="no-referrer">
+    <script src="portal-ui.js"></script>
+
 </head>
 
 <body>
@@ -59,21 +60,24 @@
 
                     <div class="logo-frame">
 
-                        <img
-                            src="images/altimin-logo.png"
-                            alt="Altimin Limited"
-                            class="altimin-logo"
+                        <a
+                            href="index.html"
+                            aria-label="Return to portal home"
                         >
+                            <img
+                                src="images/altimin-logo.png"
+                                alt="Altimin Limited"
+                                class="altimin-logo"
+                            >
+                        </a>
 
                     </div>
-
 
                     <span class="portal-label">
                         CLIENT PORTAL
                     </span>
 
                 </header>
-
 
                 <div class="brand-message">
 
@@ -96,7 +100,6 @@
 
                 </div>
 
-
                 <footer class="brand-footer">
 
                     <div class="secure-status">
@@ -117,14 +120,13 @@
 
                     </div>
 
-
                     <a
-                        href="https://altimin.com"
+                        href="https://altiminlimited.com"
                         target="_blank"
                         rel="noopener noreferrer"
                         class="website-link"
                     >
-                        Visit Altimin.com
+                        Visit Altimin Limited
                         <span>↗</span>
                     </a>
 
@@ -133,7 +135,6 @@
             </div>
 
         </aside>
-
 
         <!-- =====================================================
              LOGIN PANEL
@@ -163,13 +164,25 @@
 
                 </div>
 
-
                 <div id="clerkSignUp"></div>
-<p id="acceptMessage" role="status">Preparing your invitation…</p>
-<button type="button" id="retryAccess" hidden>Check access again</button>
-<button type="button" id="switchAccount" hidden>Sign out / use another account</button>
-<p><a href="index.html">Return to sign in</a></p>
 
+                <p id="acceptMessage" role="status">
+                    Preparing your invitation…
+                </p>
+
+                <button type="button" id="retryAccess" hidden>
+                    Check access again
+                </button>
+
+                <button type="button" id="switchAccount" hidden>
+                    Sign out / use another account
+                </button>
+
+                <p>
+                    <a href="index.html">
+                        Return to sign in
+                    </a>
+                </p>
 
                 <footer class="login-footer">
 
@@ -189,10 +202,9 @@
 
     </main>
 
-
     <script src="portal-config.js"></script>
-<script src="portal-session.js"></script>
-<script src="accept-invitation.js"></script>
+    <script src="portal-session.js"></script>
+    <script src="accept-invitation.js"></script>
 
 </body>
 
