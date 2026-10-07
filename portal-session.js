@@ -788,6 +788,36 @@
 
 
     // =====================================================
+    // DATABASE CLIENT
+    // =====================================================
+
+    async function getDatabaseClient() {
+
+        const context =
+            await init();
+
+
+        if (!context?.signedIn) {
+
+            throw new Error(
+                "A signed-in Clerk session is required before using Supabase."
+            );
+
+        }
+
+
+        const config =
+            await ensureConfig();
+
+
+        return createDatabaseClient(
+            config
+        );
+
+    }
+
+
+    // =====================================================
     // PUBLIC API
     // =====================================================
 
@@ -798,6 +828,8 @@
         requireAccess,
 
         signOut,
+
+        getDatabaseClient,
 
         getContext:
             () => sessionContext

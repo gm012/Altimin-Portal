@@ -1848,6 +1848,28 @@ async function initialiseDashboardPage() {
         }
 
 
+        if (!window.AltiminPortalApi) {
+
+            throw new Error(
+                "Altimin Supabase portal API is unavailable."
+            );
+
+        }
+
+
+        const remoteState =
+            await window.AltiminPortalApi
+                .loadState();
+
+
+        PortalStore.hydrate(
+            remoteState
+        );
+
+
+        refreshState();
+
+
         authenticatedIdentity =
             context.identity;
 

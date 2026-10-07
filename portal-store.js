@@ -1,383 +1,47 @@
 // =========================================================
 // ALTIMIN CLIENT PORTAL
-// SHARED PROTOTYPE DATA STORE
+// SHARED PORTAL STATE CACHE
+// =========================================================
+//
+// PHASE 4 NOTE
+// Supabase is now the source of truth for portal data reads.
+// This module keeps the existing synchronous PortalStore API
+// so admin.js and dashboard.js can continue rendering without
+// a large UI rewrite.
+//
+// localStorage is retained only as a short-lived browser cache
+// and for the admin client-preview selection during this phase.
 // =========================================================
 
 (function () {
+
+    "use strict";
+
 
     const STORAGE_KEY =
         "altiminPortalV2";
 
 
-    // =====================================================
-    // DEFAULT PROTOTYPE DATA
-    // =====================================================
+    let memoryState =
+        null;
 
-    const defaultState = {
 
-        activeClientId: 1,
+    const emptyState = {
 
+        activeClientId:
+            null,
 
-        clients: [
+        clients:
+            [],
 
-            {
-                id: 1,
+        services:
+            [],
 
-                company:
-                    "ACME Industries",
+        hardware:
+            [],
 
-                contact:
-                    "Alex Morgan",
-
-                email:
-                    "alex@acme.co.za",
-
-                region:
-                    "South Africa",
-
-                status:
-                    "Active",
-
-                serviceIds:
-                    [1, 2, 3, 4]
-            },
-
-            {
-                id: 2,
-
-                company:
-                    "Northstar Group",
-
-                contact:
-                    "Maya Singh",
-
-                email:
-                    "maya@northstar.co.za",
-
-                region:
-                    "South Africa",
-
-                status:
-                    "Active",
-
-                serviceIds:
-                    [1, 2, 3]
-            },
-
-            {
-                id: 3,
-
-                company:
-                    "Barton & Co",
-
-                contact:
-                    "James Barton",
-
-                email:
-                    "james@barton.co.uk",
-
-                region:
-                    "United Kingdom",
-
-                status:
-                    "Active",
-
-                serviceIds:
-                    [1, 2]
-            }
-
-        ],
-
-
-        services: [
-
-            {
-                id: 1,
-
-                code:
-                    "M365",
-
-                name:
-                    "Microsoft 365",
-
-                category:
-                    "Cloud & Productivity",
-
-                description:
-                    "Managed Microsoft 365 environment and user administration.",
-
-                status:
-                    "Active"
-            },
-
-            {
-                id: 2,
-
-                code:
-                    "ITS",
-
-                name:
-                    "Managed IT Support",
-
-                category:
-                    "IT Services",
-
-                description:
-                    "Ongoing support for your day-to-day technology environment.",
-
-                status:
-                    "Active"
-            },
-
-            {
-                id: 3,
-
-                code:
-                    "CB",
-
-                name:
-                    "Cloud Backup",
-
-                category:
-                    "Data Protection",
-
-                description:
-                    "Managed backup services protecting critical business data.",
-
-                status:
-                    "Active"
-            },
-
-            {
-                id: 4,
-
-                code:
-                    "SEC",
-
-                name:
-                    "Cybersecurity Monitoring",
-
-                category:
-                    "Security",
-
-                description:
-                    "Ongoing monitoring supporting the security of your environment.",
-
-                status:
-                    "Active"
-            }
-
-        ],
-
-
-        hardware: [
-
-            {
-                id: 1,
-
-                code:
-                    "NB",
-
-                name:
-                    "Laptop",
-
-                description:
-                    "Business laptop requests.",
-
-                status:
-                    "Active"
-            },
-
-            {
-                id: 2,
-
-                code:
-                    "DSK",
-
-                name:
-                    "Desktop",
-
-                description:
-                    "Desktop workstation requests.",
-
-                status:
-                    "Active"
-            },
-
-            {
-                id: 3,
-
-                code:
-                    "MON",
-
-                name:
-                    "Monitor",
-
-                description:
-                    "Business monitor and display requests.",
-
-                status:
-                    "Active"
-            },
-
-            {
-                id: 4,
-
-                code:
-                    "NET",
-
-                name:
-                    "Networking Equipment",
-
-                description:
-                    "Network infrastructure and hardware.",
-
-                status:
-                    "Active"
-            },
-
-            {
-                id: 5,
-
-                code:
-                    "SRV",
-
-                name:
-                    "Server",
-
-                description:
-                    "Server hardware and infrastructure requests.",
-
-                status:
-                    "Active"
-            },
-
-            {
-                id: 6,
-
-                code:
-                    "ACC",
-
-                name:
-                    "Peripheral / Accessory",
-
-                description:
-                    "Business peripherals and accessories.",
-
-                status:
-                    "Active"
-            }
-
-        ],
-
-
-        requests: [
-
-            {
-                id:
-                    "REQ-0041",
-
-                clientId:
-                    1,
-
-                title:
-                    "5 × Business Laptops",
-
-                type:
-                    "Hardware",
-
-                date:
-                    "18 Sep 2026",
-
-                details:
-                    "Five business laptops required for new staff.",
-
-                quantity:
-                    5,
-
-                status:
-                    "Under Review"
-            },
-
-            {
-                id:
-                    "REQ-0038",
-
-                clientId:
-                    1,
-
-                title:
-                    "Additional Microsoft 365 Licences",
-
-                type:
-                    "Service",
-
-                date:
-                    "12 Sep 2026",
-
-                details:
-                    "Additional Microsoft 365 licences required.",
-
-                quantity:
-                    1,
-
-                status:
-                    "Approved"
-            },
-
-            {
-                id:
-                    "REQ-0032",
-
-                clientId:
-                    1,
-
-                title:
-                    "Office Monitor",
-
-                type:
-                    "Hardware",
-
-                date:
-                    "03 Sep 2026",
-
-                details:
-                    "Additional monitor for workstation.",
-
-                quantity:
-                    1,
-
-                status:
-                    "Completed"
-            },
-
-            {
-                id:
-                    "REQ-0029",
-
-                clientId:
-                    2,
-
-                title:
-                    "Cloud Backup",
-
-                type:
-                    "Service",
-
-                date:
-                    "28 Aug 2026",
-
-                details:
-                    "Cloud backup requirement for additional department.",
-
-                quantity:
-                    1,
-
-                status:
-                    "Completed"
-            }
-
-        ]
+        requests:
+            []
 
     };
 
@@ -399,39 +63,77 @@
     }
 
 
-    function load() {
+    function normaliseState(
+        value
+    ) {
 
-        const stored =
-            localStorage.getItem(
-                STORAGE_KEY
-            );
-
-
-        if (!stored) {
-
-            const initial =
-                clone(
-                    defaultState
-                );
+        const source =
+            value &&
+            typeof value === "object"
+                ? value
+                : {};
 
 
-            localStorage.setItem(
-                STORAGE_KEY,
-                JSON.stringify(
-                    initial
+        return {
+
+            activeClientId:
+                source.activeClientId ??
+                null,
+
+            clients:
+                Array.isArray(
+                    source.clients
                 )
-            );
+                    ? source.clients
+                    : [],
+
+            services:
+                Array.isArray(
+                    source.services
+                )
+                    ? source.services
+                    : [],
+
+            hardware:
+                Array.isArray(
+                    source.hardware
+                )
+                    ? source.hardware
+                    : [],
+
+            requests:
+                Array.isArray(
+                    source.requests
+                )
+                    ? source.requests
+                    : []
+
+        };
+
+    }
 
 
-            return initial;
-
-        }
-
+    function readCachedState() {
 
         try {
 
-            return JSON.parse(
-                stored
+            const stored =
+                localStorage.getItem(
+                    STORAGE_KEY
+                );
+
+
+            if (!stored) {
+
+                return null;
+
+            }
+
+
+            return normaliseState(
+                JSON.parse(
+                    stored
+                )
             );
 
         } catch (
@@ -439,28 +141,157 @@
         ) {
 
             console.warn(
-                "Portal data could not be read. Restoring prototype data.",
+                "Altimin portal cache could not be read.",
                 error
             );
 
 
-            const initial =
-                clone(
-                    defaultState
-                );
+            return null;
 
+        }
+
+    }
+
+
+    function writeCachedState(
+        state
+    ) {
+
+        try {
 
             localStorage.setItem(
                 STORAGE_KEY,
                 JSON.stringify(
-                    initial
+                    state
                 )
             );
 
+        } catch (
+            error
+        ) {
 
-            return initial;
+            console.warn(
+                "Altimin portal cache could not be written.",
+                error
+            );
 
         }
+
+    }
+
+
+    function findEquivalentClientId(
+        previousState,
+        nextState
+    ) {
+
+        const previousClient =
+            previousState?.clients?.find(
+                client =>
+                    Number(
+                        client.id
+                    ) ===
+                    Number(
+                        previousState.activeClientId
+                    )
+            );
+
+
+        if (!previousClient) {
+
+            return null;
+
+        }
+
+
+        const previousEmail =
+            String(
+                previousClient.email ||
+                ""
+            )
+                .trim()
+                .toLowerCase();
+
+
+        const previousCompany =
+            String(
+                previousClient.company ||
+                ""
+            )
+                .trim()
+                .toLowerCase();
+
+
+        const match =
+            nextState.clients.find(
+                client => {
+
+                    const email =
+                        String(
+                            client.email ||
+                            ""
+                        )
+                            .trim()
+                            .toLowerCase();
+
+
+                    const company =
+                        String(
+                            client.company ||
+                            ""
+                        )
+                            .trim()
+                            .toLowerCase();
+
+
+                    return (
+                        previousEmail &&
+                        email === previousEmail
+                    ) || (
+                        previousCompany &&
+                        company === previousCompany
+                    );
+
+                }
+            );
+
+
+        return match
+            ? match.id
+            : null;
+
+    }
+
+
+    // =====================================================
+    // STATE
+    // =====================================================
+
+    function load() {
+
+        if (memoryState) {
+
+            return clone(
+                memoryState
+            );
+
+        }
+
+
+        const cached =
+            readCachedState();
+
+
+        memoryState =
+            cached ||
+            clone(
+                emptyState
+            );
+
+
+        return clone(
+            memoryState
+        );
 
     }
 
@@ -469,11 +300,16 @@
         state
     ) {
 
-        localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(
-                state
-            )
+        memoryState =
+            normaliseState(
+                clone(
+                    state
+                )
+            );
+
+
+        writeCachedState(
+            memoryState
         );
 
 
@@ -483,26 +319,134 @@
             )
         );
 
+
+        return clone(
+            memoryState
+        );
+
+    }
+
+
+    function hydrate(
+        remoteState
+    ) {
+
+        const previousState =
+            load();
+
+
+        const nextState =
+            normaliseState(
+                clone(
+                    remoteState
+                )
+            );
+
+
+        const remoteActiveClientExists =
+            nextState.clients.some(
+                client =>
+                    Number(
+                        client.id
+                    ) ===
+                    Number(
+                        nextState.activeClientId
+                    )
+            );
+
+
+        const previousActiveClientStillExists =
+            nextState.clients.some(
+                client =>
+                    Number(
+                        client.id
+                    ) ===
+                    Number(
+                        previousState.activeClientId
+                    )
+            );
+
+
+        if (remoteActiveClientExists) {
+
+            // Keep the active client supplied by the remote state.
+
+        } else if (
+            previousActiveClientStillExists
+        ) {
+
+            nextState.activeClientId =
+                previousState.activeClientId;
+
+        } else {
+
+            const equivalentClientId =
+                findEquivalentClientId(
+                    previousState,
+                    nextState
+                );
+
+
+            nextState.activeClientId =
+                equivalentClientId ??
+                nextState.clients[0]?.id ??
+                null;
+
+        }
+
+
+        memoryState =
+            nextState;
+
+
+        writeCachedState(
+            memoryState
+        );
+
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "altiminPortalHydrated",
+                {
+                    detail: {
+                        source:
+                            "supabase"
+                    }
+                }
+            )
+        );
+
+
+        return clone(
+            memoryState
+        );
+
     }
 
 
     function reset() {
 
-        const initial =
+        memoryState =
             clone(
-                defaultState
+                emptyState
             );
 
 
-        save(
-            initial
+        writeCachedState(
+            memoryState
         );
 
 
-        return initial;
+        return clone(
+            memoryState
+        );
 
     }
 
+
+    // =====================================================
+    // LOOKUPS
+    // =====================================================
 
     function getClientById(
         state,
@@ -663,6 +607,8 @@
         load,
 
         save,
+
+        hydrate,
 
         reset,
 
