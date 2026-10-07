@@ -1,9 +1,7 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -16,7 +14,6 @@
     </title>
 
     <style>
-
         * {
             box-sizing: border-box;
         }
@@ -25,86 +22,61 @@
             margin: 0;
             min-height: 100vh;
             background: #0b0d10;
-            color: #f3f5f7;
-            font-family:
-                Inter,
-                Arial,
-                sans-serif;
+            color: #f5f7fa;
+            font-family: Arial, sans-serif;
         }
 
         main {
-            width: min(
-                900px,
-                calc(100% - 40px)
-            );
+            width: min(900px, calc(100% - 40px));
             margin: 0 auto;
-            padding: 70px 0;
+            padding: 60px 0;
         }
 
         h1 {
-            margin: 0 0 12px;
-            font-size: 32px;
+            margin-bottom: 10px;
         }
 
-        .lead {
-            margin: 0 0 32px;
-            color: #9da6b2;
+        p {
+            color: #aeb6c0;
             line-height: 1.6;
         }
 
-        .status {
-            margin-bottom: 24px;
-            padding: 18px 20px;
+        .panel {
+            margin-top: 28px;
+            padding: 24px;
             border: 1px solid #303640;
-            border-radius: 12px;
+            border-radius: 14px;
             background: #14171c;
         }
 
-        .status.testing {
-            border-color: #80731e;
-        }
-
-        .status.success {
-            border-color: #26864e;
-        }
-
-        .status.error {
-            border-color: #a83b3b;
-        }
-
-        #signInHost {
-            max-width: 460px;
-            margin: 30px 0;
-        }
-
-        pre {
-            overflow: auto;
-            min-height: 120px;
-            padding: 20px;
-            border: 1px solid #303640;
-            border-radius: 12px;
-            background: #111419;
-            color: #b9f6ca;
-            line-height: 1.55;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-
-        button {
-            margin-top: 16px;
-            padding: 12px 18px;
-            border: 0;
-            border-radius: 8px;
-            cursor: pointer;
+        #status {
             font-weight: 700;
         }
 
-        [hidden] {
-            display: none !important;
+        #status.success {
+            color: #73dc96;
         }
 
-    </style>
+        #status.error {
+            color: #ff8181;
+        }
 
+        #signIn {
+            margin-top: 30px;
+        }
+
+        pre {
+            margin-top: 28px;
+            padding: 20px;
+            background: #0d1014;
+            border: 1px solid #303640;
+            border-radius: 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #b8f5c7;
+            min-height: 100px;
+        }
+    </style>
 </head>
 
 
@@ -113,650 +85,380 @@
     <main>
 
         <h1>
-            Altimin Portal Connection Test
+            Altimin Connection Test
         </h1>
 
-        <p class="lead">
-            Clerk authentication → Supabase →
-            Altimin database → Row Level Security.
+        <p>
+            Testing Clerk authentication and Supabase access.
         </p>
 
+        <div class="panel">
 
-        <div
-            id="status"
-            class="status testing"
-        >
-            Starting connection test...
+            <div id="status">
+                Loading Clerk...
+            </div>
+
+            <div id="signIn"></div>
+
         </div>
 
-
-        <div id="signInHost"></div>
-
-
         <pre id="output">
-Waiting for Clerk...
+Waiting...
         </pre>
-
-
-        <button
-            id="retryButton"
-            type="button"
-            hidden
-        >
-            Run test again
-        </button>
 
     </main>
 
 
-    <!-- =====================================================
-         PUBLIC CONFIG
-    ====================================================== -->
+    <!-- =============================================
+         ALTIMIN CONFIG
+    ============================================== -->
 
     <script src="portal-config.js"></script>
 
 
-    <!-- =====================================================
-         SUPABASE JAVASCRIPT CLIENT
-    ====================================================== -->
+    <!-- =============================================
+         CLERK UI
+    ============================================== -->
+
+    <script
+        defer
+        crossorigin="anonymous"
+        src="https://inviting-molly-2739.clerk.accounts.dev/npm/@clerk/ui@1/dist/ui.browser.js"
+        type="text/javascript"
+    ></script>
+
+
+    <!-- =============================================
+         CLERK JS
+    ============================================== -->
+
+    <script
+        defer
+        crossorigin="anonymous"
+        data-clerk-publishable-key="pk_test_aW52aXRpbmctbW9sbHktMjczOS5jbGVyay5hY2NvdW50cy5kZXYk"
+        src="https://inviting-molly-2739.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js"
+        type="text/javascript"
+    ></script>
+
+
+    <!-- =============================================
+         SUPABASE
+    ============================================== -->
 
     <script
         src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
     ></script>
 
 
-    <!-- =====================================================
-         CONNECTION TEST
-    ====================================================== -->
+    <!-- =============================================
+         TEST
+    ============================================== -->
 
     <script>
 
-        (() => {
+        window.addEventListener(
+            "load",
+            async function () {
 
-            "use strict";
+                const status =
+                    document.getElementById(
+                        "status"
+                    );
 
+                const output =
+                    document.getElementById(
+                        "output"
+                    );
 
-            const config =
-                window.AltiminConfig;
-
-
-            const statusElement =
-                document.getElementById(
-                    "status"
-                );
-
-
-            const outputElement =
-                document.getElementById(
-                    "output"
-                );
-
-
-            const signInHost =
-                document.getElementById(
-                    "signInHost"
-                );
+                const signIn =
+                    document.getElementById(
+                        "signIn"
+                    );
 
 
-            const retryButton =
-                document.getElementById(
-                    "retryButton"
-                );
-
-
-            let databaseClient = null;
-
-            let testRunning = false;
-
-
-            // =================================================
-            // STATUS
-            // =================================================
-
-            function setStatus(
-                message,
-                type = "testing"
-            ) {
-
-                statusElement.textContent =
-                    message;
-
-                statusElement.className =
-                    `status ${type}`;
-
-            }
-
-
-            function setOutput(
-                value
-            ) {
-
-                if (
-                    typeof value ===
-                    "string"
+                function showOutput(
+                    value
                 ) {
 
-                    outputElement.textContent =
-                        value;
-
-                    return;
-
-                }
-
-
-                outputElement.textContent =
-                    JSON.stringify(
-                        value,
-                        null,
-                        2
-                    );
-
-            }
-
-
-            // =================================================
-            // CONFIG VALIDATION
-            // =================================================
-
-            function validateConfig() {
-
-                if (!config) {
-
-                    throw new Error(
-                        "portal-config.js did not load."
-                    );
-
-                }
-
-
-                if (
-                    !config.clerkPublishableKey ||
-                    !config.supabaseUrl ||
-                    !config.supabasePublishableKey
-                ) {
-
-                    throw new Error(
-                        "Altimin public configuration is incomplete."
-                    );
-
-                }
-
-            }
-
-
-            // =================================================
-            // CLERK DOMAIN
-            // =================================================
-
-            function getClerkDomain(
-                publishableKey
-            ) {
-
-                const encoded =
-                    publishableKey.replace(
-                        /^pk_(test|live)_/,
-                        ""
-                    );
-
-
-                const base64 =
-                    encoded
-                        .replace(
-                            /-/g,
-                            "+"
-                        )
-                        .replace(
-                            /_/g,
-                            "/"
-                        );
-
-
-                const padded =
-                    base64.padEnd(
-                        Math.ceil(
-                            base64.length / 4
-                        ) * 4,
-                        "="
-                    );
-
-
-                const decoded =
-                    atob(
-                        padded
-                    );
-
-
-                return decoded.replace(
-                    /\$$/,
-                    ""
-                );
-
-            }
-
-
-            // =================================================
-            // SCRIPT LOADER
-            // =================================================
-
-            function loadScript(
-                source,
-                attributes = {}
-            ) {
-
-                return new Promise(
-                    (
-                        resolve,
-                        reject
-                    ) => {
-
-                        const existing =
-                            document.querySelector(
-                                `script[src="${source}"]`
+                    output.textContent =
+                        typeof value === "string"
+                            ? value
+                            : JSON.stringify(
+                                value,
+                                null,
+                                2
                             );
 
+                }
 
-                        if (existing) {
 
-                            if (
-                                existing.dataset.loaded ===
-                                "true"
-                            ) {
+                try {
 
-                                resolve();
+                    // =============================================
+                    // CLERK
+                    // =============================================
 
-                                return;
+                    await Clerk.load({
+
+                        ui: {
+                            ClerkUI:
+                                window.__internal_ClerkUICtor
+                        }
+
+                    });
+
+
+                    console.log(
+                        "Clerk loaded"
+                    );
+
+
+                    console.log(
+                        "Signed in:",
+                        Clerk.isSignedIn
+                    );
+
+
+                    console.log(
+                        "Clerk user:",
+                        Clerk.user
+                    );
+
+
+                    // =============================================
+                    // SUPABASE
+                    // =============================================
+
+                    const supabaseClient =
+                        window.supabase.createClient(
+
+                            window
+                                .AltiminConfig
+                                .supabaseUrl,
+
+                            window
+                                .AltiminConfig
+                                .supabasePublishableKey,
+
+                            {
+
+                                accessToken:
+                                    async () => {
+
+                                        if (
+                                            !Clerk.session
+                                        ) {
+
+                                            return null;
+
+                                        }
+
+
+                                        return await Clerk
+                                            .session
+                                            .getToken();
+
+                                    }
 
                             }
 
+                        );
 
-                            existing.addEventListener(
-                                "load",
-                                resolve,
-                                {
-                                    once: true
-                                }
-                            );
 
-                            existing.addEventListener(
-                                "error",
-                                reject,
-                                {
-                                    once: true
-                                }
-                            );
+                    // =============================================
+                    // DATABASE CHECK
+                    // =============================================
+
+                    async function testDatabase() {
+
+                        if (
+                            !Clerk.user ||
+                            !Clerk.session
+                        ) {
 
                             return;
 
                         }
 
 
-                        const script =
-                            document.createElement(
-                                "script"
+                        status.textContent =
+                            "Clerk signed in. Testing Supabase...";
+
+
+                        const userId =
+                            Clerk.user.id;
+
+
+                        console.log(
+                            "Testing Supabase with:",
+                            userId
+                        );
+
+
+                        const {
+                            data,
+                            error
+                        } =
+                            await supabaseClient
+                                .from(
+                                    "portal_members"
+                                )
+                                .select(
+                                    "id, clerk_user_id, role, client_id, active"
+                                )
+                                .eq(
+                                    "clerk_user_id",
+                                    userId
+                                )
+                                .maybeSingle();
+
+
+                        if (error) {
+
+                            throw error;
+
+                        }
+
+
+                        if (!data) {
+
+                            throw new Error(
+                                "Clerk login succeeded, but this user was not found in portal_members."
                             );
 
-
-                        script.src =
-                            source;
-
-                        script.async =
-                            true;
+                        }
 
 
-                        Object.entries(
-                            attributes
-                        ).forEach(
-                            (
-                                [
-                                    key,
-                                    value
-                                ]
-                            ) => {
+                        const {
+                            data:
+                                clients,
 
-                                script.setAttribute(
-                                    key,
-                                    value
+                            error:
+                                clientsError
+
+                        } =
+                            await supabaseClient
+                                .from(
+                                    "portal_clients"
+                                )
+                                .select(
+                                    "id, company, contact, email, status"
+                                )
+                                .order(
+                                    "id"
                                 );
 
-                            }
-                        );
+
+                        if (clientsError) {
+
+                            throw clientsError;
+
+                        }
 
 
-                        script.addEventListener(
-                            "load",
-                            () => {
+                        status.textContent =
+                            "PASS — Clerk and Supabase are connected.";
 
-                                script.dataset.loaded =
-                                    "true";
-
-                                resolve();
-
-                            }
-                        );
+                        status.className =
+                            "success";
 
 
-                        script.addEventListener(
-                            "error",
-                            () => {
+                        signIn.innerHTML =
+                            "";
 
-                                reject(
-                                    new Error(
-                                        `Could not load ${source}`
-                                    )
+
+                        showOutput({
+
+                            result:
+                                "PASS",
+
+                            clerkUserId:
+                                userId,
+
+                            membership:
+                                data,
+
+                            clients:
+                                clients
+
+                        });
+
+                    }
+
+
+                    // =============================================
+                    // ALREADY SIGNED IN
+                    // =============================================
+
+                    if (
+                        Clerk.isSignedIn
+                    ) {
+
+                        await testDatabase();
+
+                        return;
+
+                    }
+
+
+                    // =============================================
+                    // SIGN IN SCREEN
+                    // =============================================
+
+                    status.textContent =
+                        "Clerk loaded. Sign in below.";
+
+
+                    Clerk.mountSignIn(
+                        signIn
+                    );
+
+
+                    Clerk.addListener(
+
+                        async (
+                            clerkState
+                        ) => {
+
+                            if (
+                                clerkState.user &&
+                                clerkState.session
+                            ) {
+
+                                Clerk.unmountSignIn(
+                                    signIn
                                 );
 
+
+                                await testDatabase();
+
                             }
-                        );
-
-
-                        document.head.appendChild(
-                            script
-                        );
-
-                    }
-                );
-
-            }
-
-
-            // =================================================
-            // LOAD CLERK
-            // =================================================
-
-            async function loadClerk() {
-
-                const clerkDomain =
-                    getClerkDomain(
-                        config.clerkPublishableKey
-                    );
-
-
-                await loadScript(
-                    `https://${clerkDomain}/npm/@clerk/ui@1/dist/ui.browser.js`,
-                    {
-                        crossorigin:
-                            "anonymous"
-                    }
-                );
-
-
-                await loadScript(
-                    `https://${clerkDomain}/npm/@clerk/clerk-js@6/dist/clerk.browser.js`,
-                    {
-                        crossorigin:
-                            "anonymous",
-
-                        "data-clerk-publishable-key":
-                            config.clerkPublishableKey
-                    }
-                );
-
-
-                if (!window.Clerk) {
-
-                    throw new Error(
-                        "ClerkJS loaded but the Clerk object is unavailable."
-                    );
-
-                }
-
-
-                await window.Clerk.load({
-
-                    ui: {
-
-                        ClerkUI:
-                            window
-                                .__internal_ClerkUICtor
-
-                    }
-
-                });
-
-            }
-
-
-            // =================================================
-            // SUPABASE CLIENT
-            // =================================================
-
-            function createDatabaseClient() {
-
-                if (
-                    !window.supabase ||
-                    !window.supabase.createClient
-                ) {
-
-                    throw new Error(
-                        "Supabase JavaScript client did not load."
-                    );
-
-                }
-
-
-                databaseClient =
-                    window.supabase.createClient(
-
-                        config.supabaseUrl,
-
-                        config.supabasePublishableKey,
-
-                        {
-
-                            accessToken:
-                                async () => {
-
-                                    if (
-                                        !window.Clerk ||
-                                        !window.Clerk.session
-                                    ) {
-
-                                        return null;
-
-                                    }
-
-
-                                    return (
-                                        await window
-                                            .Clerk
-                                            .session
-                                            .getToken()
-                                    );
-
-                                }
 
                         }
 
                     );
 
-            }
-
-
-            // =================================================
-            // DATABASE TEST
-            // =================================================
-
-            async function runDatabaseTest() {
-
-                if (testRunning) {
-
-                    return;
-
-                }
-
-
-                if (
-                    !window.Clerk ||
-                    !window.Clerk.session ||
-                    !window.Clerk.user
-                ) {
-
-                    setStatus(
-                        "Sign in with the Clerk admin account first.",
-                        "testing"
-                    );
-
-                    return;
-
-                }
-
-
-                testRunning =
-                    true;
-
-
-                retryButton.hidden =
-                    true;
-
-
-                setStatus(
-                    "Authenticated with Clerk. Testing Supabase and RLS...",
-                    "testing"
-                );
-
-
-                try {
-
-                    if (!databaseClient) {
-
-                        createDatabaseClient();
-
-                    }
-
-
-                    // =============================================
-                    // CURRENT PORTAL MEMBERSHIP
-                    // =============================================
-
-                    const {
-                        data:
-                            membership,
-
-                        error:
-                            membershipError
-
-                    } =
-                        await databaseClient
-                            .from(
-                                "portal_members"
-                            )
-                            .select(
-                                "id, clerk_user_id, role, client_id, active"
-                            )
-                            .eq(
-                                "clerk_user_id",
-                                window
-                                    .Clerk
-                                    .user
-                                    .id
-                            )
-                            .maybeSingle();
-
-
-                    if (membershipError) {
-
-                        throw membershipError;
-
-                    }
-
-
-                    if (!membership) {
-
-                        throw new Error(
-                            "Clerk authentication succeeded, but no matching Altimin portal membership was found."
-                        );
-
-                    }
-
-
-                    // =============================================
-                    // ADMIN CLIENT VISIBILITY TEST
-                    // =============================================
-
-                    const {
-                        data:
-                            clients,
-
-                        error:
-                            clientsError
-
-                    } =
-                        await databaseClient
-                            .from(
-                                "portal_clients"
-                            )
-                            .select(
-                                "id, company, status"
-                            )
-                            .order(
-                                "id",
-                                {
-                                    ascending:
-                                        true
-                                }
-                            );
-
-
-                    if (clientsError) {
-
-                        throw clientsError;
-
-                    }
-
-
-                    setOutput({
-
-                        result:
-                            "PASS",
-
-                        clerk: {
-
-                            signedIn:
-                                true,
-
-                            userId:
-                                window
-                                    .Clerk
-                                    .user
-                                    .id
-
-                        },
-
-                        altiminMembership:
-                            membership,
-
-                        visibleClients:
-                            clients,
-
-                        message:
-                            "Clerk authentication and Supabase RLS are connected."
-
-                    });
-
-
-                    setStatus(
-                        "PASS — Clerk → Supabase → Altimin RLS is working.",
-                        "success"
-                    );
 
                 } catch (
                     error
                 ) {
 
                     console.error(
-                        "Altimin connection test failed:",
                         error
                     );
 
 
-                    setOutput({
+                    status.textContent =
+                        "FAIL — connection test error.";
+
+                    status.className =
+                        "error";
+
+
+                    showOutput({
 
                         result:
                             "FAIL",
-
-                        name:
-                            error?.name ||
-                            "Error",
 
                         message:
                             error?.message ||
@@ -778,178 +480,10 @@ Waiting for Clerk...
 
                     });
 
-
-                    setStatus(
-                        "Connection test failed. Send me the result shown below.",
-                        "error"
-                    );
-
-
-                    retryButton.hidden =
-                        false;
-
-                } finally {
-
-                    testRunning =
-                        false;
-
                 }
 
             }
-
-
-            // =================================================
-            // START
-            // =================================================
-
-            async function start() {
-
-                try {
-
-                    validateConfig();
-
-
-                    setStatus(
-                        "Loading Clerk...",
-                        "testing"
-                    );
-
-
-                    await loadClerk();
-
-
-                    setOutput(
-                        "Clerk loaded."
-                    );
-
-
-                    // =============================================
-                    // USER ALREADY SIGNED IN
-                    // =============================================
-
-                    if (
-                        window.Clerk.session &&
-                        window.Clerk.user
-                    ) {
-
-                        await runDatabaseTest();
-
-                        return;
-
-                    }
-
-
-                    // =============================================
-                    // WAIT FOR SIGN IN
-                    // =============================================
-
-                    setStatus(
-                        "Clerk loaded. Sign in with the Altimin admin account.",
-                        "testing"
-                    );
-
-
-                    setOutput(
-                        "Waiting for admin authentication..."
-                    );
-
-
-                    window.Clerk.mountSignIn(
-                        signInHost
-                    );
-
-
-                    let connectionStarted =
-                        false;
-
-
-                    window.Clerk.addListener(
-
-                        async (
-                            {
-                                session,
-                                user
-                            }
-                        ) => {
-
-                            if (
-                                !session ||
-                                !user ||
-                                connectionStarted
-                            ) {
-
-                                return;
-
-                            }
-
-
-                            connectionStarted =
-                                true;
-
-
-                            window.Clerk
-                                .unmountSignIn(
-                                    signInHost
-                                );
-
-
-                            signInHost.innerHTML =
-                                "";
-
-
-                            await runDatabaseTest();
-
-                        },
-
-                        {
-                            skipInitialEmit:
-                                true
-                        }
-
-                    );
-
-                } catch (
-                    error
-                ) {
-
-                    console.error(
-                        error
-                    );
-
-
-                    setStatus(
-                        "The connection test could not start.",
-                        "error"
-                    );
-
-
-                    setOutput({
-
-                        result:
-                            "FAIL",
-
-                        message:
-                            error?.message ||
-                            String(
-                                error
-                            )
-
-                    });
-
-                }
-
-            }
-
-
-            retryButton.addEventListener(
-                "click",
-                runDatabaseTest
-            );
-
-
-            start();
-
-        })();
+        );
 
     </script>
 
