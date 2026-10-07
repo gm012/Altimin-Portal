@@ -246,6 +246,37 @@ function refreshState() {
 
 
 
+async function refreshFromSupabase() {
+
+
+
+    if (!window.AltiminPortalApi) {
+
+        throw new Error(
+            "Altimin Supabase portal API is unavailable."
+        );
+
+    }
+
+
+
+    await window.AltiminPortalApi
+        .refreshStore();
+
+
+
+    refreshState();
+
+
+
+    return portalState;
+
+
+
+}
+
+
+
 
 
 function getFallbackClientIdentity() {
@@ -1413,7 +1444,7 @@ if (requestForm) {
 
         "submit",
 
-        event => {
+        async event => {
 
 
 
@@ -1421,11 +1452,7 @@ if (requestForm) {
 
 
 
-
-
             refreshState();
-
-
 
 
 
@@ -1434,8 +1461,6 @@ if (requestForm) {
                 return;
 
             }
-
-
 
 
 
@@ -1461,201 +1486,124 @@ if (requestForm) {
 
 
 
-
-
             if (
-
                 !category ||
-
                 !quantity ||
-
                 !details
-
             ) {
 
-
-
                 return;
-
-
 
             }
 
 
 
+            const submitButton =
 
+                requestForm.querySelector(
 
-            const newRequest = {
-
-
-
-                id:
-
-                    PortalStore.getNextRequestId(
-
-                        portalState
-
-                    ),
-
-
-
-                clientId:
-
-                    activeClient.id,
-
-
-
-                title:
-
-                    quantity > 1
-
-                        ? `${quantity} × ${category}`
-
-                        : category,
-
-
-
-                type:
-
-                    currentRequestType ===
-
-                        "hardware"
-
-                        ? "Hardware"
-
-                        : "Service",
-
-
-
-                date:
-
-                    PortalStore.formatToday(),
-
-
-
-                details,
-
-
-
-                quantity,
-
-
-
-                status:
-
-                    "Under Review"
-
-
-
-            };
-
-
-
-
-
-            portalState.requests.push(
-
-                newRequest
-
-            );
-
-
-
-
-
-            PortalStore.save(
-
-                portalState
-
-            );
-
-
-
-
-
-            requestForm.reset();
-
-
-
-
-
-            closeRequestDrawer();
-
-
-
-
-
-            renderAll();
-
-
-
-        }
-
-    );
-
-
-
-}
-
-
-
-
-
-// =========================================================
-
-// MOBILE NAV
-
-// =========================================================
-
-
-
-if (
-
-    mobileMenuButton &&
-
-    portalSidebar
-
-) {
-
-
-
-    mobileMenuButton.addEventListener(
-
-        "click",
-
-        () => {
-
-
-
-            const open =
-
-                portalSidebar
-
-                    .classList
-
-                    .toggle(
-
-                        "mobile-open"
-
-                    );
-
-
-
-
-
-            mobileMenuButton
-
-                .classList
-
-                .toggle(
-
-                    "active",
-
-                    open
+                    ".request-submit"
 
                 );
 
 
+
+            const originalSubmitText =
+
+                submitButton?.textContent ||
+                "Submit Request";
+
+
+
+            if (submitButton) {
+
+                submitButton.disabled =
+
+                    true;
+
+
+
+                submitButton.textContent =
+
+                    "Submitting...";
+
+            }
+
+
+
+            try {
+
+                await window.AltiminPortalApi
+                    .createRequest({
+
+                        clientId:
+                            activeClient.id,
+
+                        title:
+                            quantity > 1
+                                ? `${quantity} × ${category}`
+                                : category,
+
+                        type:
+                            currentRequestType ===
+                                "hardware"
+                                ? "Hardware"
+                                : "Service",
+
+                        quantity,
+
+                        details
+
+                    });
+
+
+
+                await refreshFromSupabase();
+
+
+
+                requestForm.reset();
+
+
+
+                closeRequestDrawer();
+
+
+
+                renderAll();
+
+            } catch (
+                error
+            ) {
+
+                console.error(
+                    "Altimin request submission failed:",
+                    error
+                );
+
+
+
+                window.alert(
+                    "The request could not be submitted to Supabase. Please try again."
+                );
+
+            } finally {
+
+                if (submitButton) {
+
+                    submitButton.disabled =
+
+                        false;
+
+
+
+                    submitButton.textContent =
+
+                        originalSubmitText;
+
+                }
+
+            }
 
         }
 
@@ -1724,7 +1672,7 @@ if (signOutButton) {
 
 // =========================================================
 
-// LIVE PROTOTYPE SYNC
+// CROSS-TAB SUPABASE CACHE SYNC
 
 // =========================================================
 
@@ -1745,6 +1693,10 @@ window.addEventListener(
             "altiminPortalV2"
 
         ) {
+
+
+
+            PortalStore.syncFromCache();
 
 
 

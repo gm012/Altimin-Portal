@@ -258,6 +258,37 @@ function saveState() {
 
 
 
+async function refreshFromSupabase() {
+
+
+
+    if (!window.AltiminPortalApi) {
+
+        throw new Error(
+            "Altimin Supabase portal API is unavailable."
+        );
+
+    }
+
+
+
+    await window.AltiminPortalApi
+        .refreshStore();
+
+
+
+    refreshState();
+
+
+
+    return state;
+
+
+
+}
+
+
+
 
 
 // =========================================================
@@ -2300,13 +2331,11 @@ function renderRequests() {
 
                     "change",
 
-                    () => {
+                    async () => {
 
 
 
                         refreshState();
-
-
 
 
 
@@ -2324,37 +2353,70 @@ function renderRequests() {
 
 
 
-
-
                         if (!request) {
 
-
-
                             return;
-
-
 
                         }
 
 
 
+                        const previousStatus =
 
-
-                        request.status =
-
-                            select.value;
-
+                            request.status;
 
 
 
+                        select.disabled =
 
-                        saveState();
-
-
-
-                        renderAll();
+                            true;
 
 
+
+                        try {
+
+                            await window.AltiminPortalApi
+                                .updateRequestStatus(
+                                    request.id,
+                                    select.value
+                                );
+
+
+
+                            await refreshFromSupabase();
+
+
+
+                            renderAll();
+
+                        } catch (
+                            error
+                        ) {
+
+                            console.error(
+                                "Altimin request status update failed:",
+                                error
+                            );
+
+
+
+                            select.value =
+
+                                previousStatus;
+
+
+
+                            window.alert(
+                                "The request status could not be updated. Please try again."
+                            );
+
+                        } finally {
+
+                            select.disabled =
+
+                                false;
+
+                        }
 
                     }
 
@@ -3018,7 +3080,7 @@ drawerForm.addEventListener(
 
     "submit",
 
-    event => {
+    async event => {
 
 
 
@@ -3026,173 +3088,330 @@ drawerForm.addEventListener(
 
 
 
-
-
         refreshState();
 
 
 
+        if (!window.AltiminPortalApi) {
 
-
-        // =====================================================
-
-        // MANAGE EXISTING CLIENT
-
-        // =====================================================
-
-
-
-        if (
-
-            drawerMode ===
-
-            "manage-client"
-
-        ) {
+            console.error(
+                "Altimin Supabase portal API is unavailable."
+            );
 
 
 
-            const client =
+            return;
 
-                PortalStore.getClientById(
-
-                    state,
-
-                    selectedClientId
-
-                );
+        }
 
 
 
+        const originalSubmitText =
+
+            drawerSubmit?.textContent ||
+            "Save";
 
 
-            if (!client) {
+
+        if (drawerSubmit) {
+
+            drawerSubmit.disabled =
+
+                true;
+
+
+
+            drawerSubmit.textContent =
+
+                "Saving...";
+
+        }
+
+
+
+        try {
+
+            // =================================================
+            // MANAGE EXISTING CLIENT
+            // =================================================
+
+            if (
+                drawerMode ===
+                "manage-client"
+            ) {
+
+                const client =
+
+                    PortalStore.getClientById(
+
+                        state,
+
+                        selectedClientId
+
+                    );
+
+
+
+                if (!client) {
+
+                    return;
+
+                }
+
+
+
+                const serviceIds =
+
+                    Array.from(
+
+                        document.querySelectorAll(
+
+                            'input[name="assignedServices"]:checked'
+
+                        )
+
+                    ).map(
+
+                        checkbox =>
+
+                            Number(
+
+                                checkbox.value
+
+                            )
+
+                    );
+
+
+
+                await window.AltiminPortalApi
+                    .updateClient(
+                        client.id,
+                        {
+                            company:
+                                document
+                                    .getElementById(
+                                        "fieldCompany"
+                                    )
+                                    .value
+                                    .trim(),
+
+                            contact:
+                                document
+                                    .getElementById(
+                                        "fieldContact"
+                                    )
+                                    .value
+                                    .trim(),
+
+                            email:
+                                document
+                                    .getElementById(
+                                        "fieldEmail"
+                                    )
+                                    .value
+                                    .trim(),
+
+                            region:
+                                document
+                                    .getElementById(
+                                        "fieldRegion"
+                                    )
+                                    .value,
+
+                            status:
+                                document
+                                    .getElementById(
+                                        "fieldStatus"
+                                    )
+                                    .value
+                        }
+                    );
+
+
+
+                await window.AltiminPortalApi
+                    .assignClientServices(
+                        client.id,
+                        serviceIds
+                    );
+
+
+
+                await refreshFromSupabase();
+
+
+
+                closeDrawer();
+
+
+
+                renderAll();
 
 
 
                 return;
 
+            }
 
+
+
+            // =================================================
+            // ADD CLIENT
+            // =================================================
+
+            if (
+                drawerMode ===
+                "client"
+            ) {
+
+                await window.AltiminPortalApi
+                    .createClient({
+
+                        company:
+                            document
+                                .getElementById(
+                                    "fieldCompany"
+                                )
+                                .value
+                                .trim(),
+
+                        contact:
+                            document
+                                .getElementById(
+                                    "fieldContact"
+                                )
+                                .value
+                                .trim(),
+
+                        email:
+                            document
+                                .getElementById(
+                                    "fieldEmail"
+                                )
+                                .value
+                                .trim(),
+
+                        region:
+                            document
+                                .getElementById(
+                                    "fieldRegion"
+                                )
+                                .value,
+
+                        status:
+                            "Active"
+
+                    });
 
             }
 
 
 
+            // =================================================
+            // ADD SERVICE
+            // =================================================
+
+            if (
+                drawerMode ===
+                "service"
+            ) {
+
+                await window.AltiminPortalApi
+                    .createService({
+
+                        name:
+                            document
+                                .getElementById(
+                                    "fieldName"
+                                )
+                                .value
+                                .trim(),
+
+                        code:
+                            document
+                                .getElementById(
+                                    "fieldCode"
+                                )
+                                .value
+                                .trim()
+                                .toUpperCase(),
+
+                        category:
+                            document
+                                .getElementById(
+                                    "fieldCategory"
+                                )
+                                .value
+                                .trim(),
+
+                        description:
+                            document
+                                .getElementById(
+                                    "fieldDescription"
+                                )
+                                .value
+                                .trim(),
+
+                        status:
+                            "Active"
+
+                    });
+
+            }
+
+
+
+            // =================================================
+            // ADD HARDWARE
+            // =================================================
+
+            if (
+                drawerMode ===
+                "hardware"
+            ) {
+
+                await window.AltiminPortalApi
+                    .createHardware({
+
+                        name:
+                            document
+                                .getElementById(
+                                    "fieldName"
+                                )
+                                .value
+                                .trim(),
+
+                        code:
+                            document
+                                .getElementById(
+                                    "fieldCode"
+                                )
+                                .value
+                                .trim()
+                                .toUpperCase(),
+
+                        category:
+                            "Hardware",
+
+                        description:
+                            document
+                                .getElementById(
+                                    "fieldDescription"
+                                )
+                                .value
+                                .trim(),
+
+                        status:
+                            "Active"
+
+                    });
+
+            }
+
 
 
-            client.company =
-
-                document
-
-                    .getElementById(
-
-                        "fieldCompany"
-
-                    )
-
-                    .value
-
-                    .trim();
-
-
-
-
-
-            client.contact =
-
-                document
-
-                    .getElementById(
-
-                        "fieldContact"
-
-                    )
-
-                    .value
-
-                    .trim();
-
-
-
-
-
-            client.email =
-
-                document
-
-                    .getElementById(
-
-                        "fieldEmail"
-
-                    )
-
-                    .value
-
-                    .trim();
-
-
-
-
-
-            client.region =
-
-                document
-
-                    .getElementById(
-
-                        "fieldRegion"
-
-                    )
-
-                    .value;
-
-
-
-
-
-            client.status =
-
-                document
-
-                    .getElementById(
-
-                        "fieldStatus"
-
-                    )
-
-                    .value;
-
-
-
-
-
-            client.serviceIds =
-
-                Array.from(
-
-                    document.querySelectorAll(
-
-                        'input[name="assignedServices"]:checked'
-
-                    )
-
-                ).map(
-
-                    checkbox =>
-
-                        Number(
-
-                            checkbox.value
-
-                        )
-
-                );
-
-
-
-
-
-            saveState();
+            await refreshFromSupabase();
 
 
 
@@ -3202,339 +3421,59 @@ drawerForm.addEventListener(
 
             renderAll();
 
-
-
-            return;
-
-
-
-        }
-
-
-
-
-
-        // =====================================================
-
-        // ADD CLIENT
-
-        // =====================================================
-
-
-
-        if (
-
-            drawerMode === "client"
-
+        } catch (
+            error
         ) {
 
-
-
-            state.clients.push({
-
-
-
-                id:
-
-                    Date.now(),
+            console.error(
+                "Altimin admin write failed:",
+                error
+            );
 
 
 
-                company:
+            window.alert(
+                "The change could not be saved to Supabase. Please try again."
+            );
 
-                    document
+        } finally {
 
-                        .getElementById(
+            if (drawerSubmit) {
 
-                            "fieldCompany"
+                drawerSubmit.disabled =
 
-                        )
-
-                        .value
-
-                        .trim(),
+                    false;
 
 
 
-                contact:
+                if (
+                    drawerMode ===
+                    "manage-client"
+                ) {
 
-                    document
+                    drawerSubmit.textContent =
 
-                        .getElementById(
+                        "Save Changes";
 
-                            "fieldContact"
+                } else if (
+                    drawerMode
+                ) {
 
-                        )
+                    drawerSubmit.textContent =
 
-                        .value
+                        originalSubmitText;
 
-                        .trim(),
+                } else {
 
+                    drawerSubmit.textContent =
 
+                        "Save";
 
-                email:
+                }
 
-                    document
-
-                        .getElementById(
-
-                            "fieldEmail"
-
-                        )
-
-                        .value
-
-                        .trim(),
-
-
-
-                region:
-
-                    document
-
-                        .getElementById(
-
-                            "fieldRegion"
-
-                        )
-
-                        .value,
-
-
-
-                status:
-
-                    "Active",
-
-
-
-                serviceIds:
-
-                    []
-
-
-
-            });
-
-
+            }
 
         }
-
-
-
-
-
-        // =====================================================
-
-        // ADD SERVICE
-
-        // =====================================================
-
-
-
-        if (
-
-            drawerMode === "service"
-
-        ) {
-
-
-
-            state.services.push({
-
-
-
-                id:
-
-                    Date.now(),
-
-
-
-                name:
-
-                    document
-
-                        .getElementById(
-
-                            "fieldName"
-
-                        )
-
-                        .value
-
-                        .trim(),
-
-
-
-                code:
-
-                    document
-
-                        .getElementById(
-
-                            "fieldCode"
-
-                        )
-
-                        .value
-
-                        .trim()
-
-                        .toUpperCase(),
-
-
-
-                category:
-
-                    document
-
-                        .getElementById(
-
-                            "fieldCategory"
-
-                        )
-
-                        .value
-
-                        .trim(),
-
-
-
-                description:
-
-                    document
-
-                        .getElementById(
-
-                            "fieldDescription"
-
-                        )
-
-                        .value
-
-                        .trim(),
-
-
-
-                status:
-
-                    "Active"
-
-
-
-            });
-
-
-
-        }
-
-
-
-
-
-        // =====================================================
-
-        // ADD HARDWARE
-
-        // =====================================================
-
-
-
-        if (
-
-            drawerMode === "hardware"
-
-        ) {
-
-
-
-            state.hardware.push({
-
-
-
-                id:
-
-                    Date.now(),
-
-
-
-                name:
-
-                    document
-
-                        .getElementById(
-
-                            "fieldName"
-
-                        )
-
-                        .value
-
-                        .trim(),
-
-
-
-                code:
-
-                    document
-
-                        .getElementById(
-
-                            "fieldCode"
-
-                        )
-
-                        .value
-
-                        .trim()
-
-                        .toUpperCase(),
-
-
-
-                description:
-
-                    document
-
-                        .getElementById(
-
-                            "fieldDescription"
-
-                        )
-
-                        .value
-
-                        .trim(),
-
-
-
-                status:
-
-                    "Active"
-
-
-
-            });
-
-
-
-        }
-
-
-
-
-
-        saveState();
-
-
-
-        closeDrawer();
-
-
-
-        renderAll();
-
-
 
     }
 
@@ -4006,6 +3945,10 @@ window.addEventListener(
             "altiminPortalV2"
 
         ) {
+
+
+
+            PortalStore.syncFromCache();
 
 
 

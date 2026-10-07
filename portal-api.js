@@ -3,10 +3,11 @@
 // SUPABASE DATA API
 // =========================================================
 //
-// PHASE 4 / STEP 04
-// Supabase is the source of truth for portal reads.
+// PHASE 4 / STEP 05
+// Supabase is the source of truth for portal reads and writes.
 // This module converts the relational Supabase schema into
-// the legacy state shape expected by admin.js/dashboard.js.
+// the legacy state shape expected by admin.js/dashboard.js
+// and exposes the write operations used by those pages.
 // =========================================================
 
 (function () {
@@ -14,7 +15,11 @@
     "use strict";
 
 
-    function assertResult(
+    // =====================================================
+    // RESULT HELPERS
+    // =====================================================
+
+    function unwrapResult(
         result,
         label
     ) {
@@ -36,10 +41,35 @@
         }
 
 
-        return result.data || [];
+        return result.data;
 
     }
 
+
+    function assertArrayResult(
+        result,
+        label
+    ) {
+
+        const data =
+            unwrapResult(
+                result,
+                label
+            );
+
+
+        return Array.isArray(
+            data
+        )
+            ? data
+            : [];
+
+    }
+
+
+    // =====================================================
+    // FORMAT HELPERS
+    // =====================================================
 
     function formatRequestDate(
         value
@@ -107,7 +137,116 @@
     }
 
 
-    async function getDatabaseClient() {
+    function requestIdFromReference(
+        value
+    ) {
+
+        const match =
+            String(
+                value ??
+                ""
+            ).match(
+                /\d+/
+            );
+
+
+        const id =
+            match
+                ? Number(
+                    match[0]
+                )
+                : Number(
+                    value
+                );
+
+
+        if (
+            !Number.isFinite(
+                id
+            ) ||
+            id <= 0
+        ) {
+
+            throw new Error(
+                `Invalid request reference: ${value}`
+            );
+
+        }
+
+
+        return id;
+
+    }
+
+
+    function createSubmissionId() {
+
+        if (
+            window.crypto &&
+            typeof window.crypto.randomUUID ===
+                "function"
+        ) {
+
+            return window.crypto.randomUUID();
+
+        }
+
+
+        const bytes =
+            new Uint8Array(
+                16
+            );
+
+
+        window.crypto.getRandomValues(
+            bytes
+        );
+
+
+        bytes[6] =
+            (bytes[6] & 0x0f) |
+            0x40;
+
+
+        bytes[8] =
+            (bytes[8] & 0x3f) |
+            0x80;
+
+
+        const hex =
+            Array.from(
+                bytes
+            )
+                .map(
+                    byte =>
+                        byte
+                            .toString(
+                                16
+                            )
+                            .padStart(
+                                2,
+                                "0"
+                            )
+                )
+                .join("");
+
+
+        return [
+            hex.slice(0, 8),
+            hex.slice(8, 12),
+            hex.slice(12, 16),
+            hex.slice(16, 20),
+            hex.slice(20)
+        ].join("-");
+
+    }
+
+
+    // =====================================================
+    // SESSION / DATABASE
+    // =====================================================
+
+    async function getContext() {
 
         if (!window.AltiminSession) {
 
@@ -117,15 +256,6 @@
 
         }
 
-
-        return await window
-            .AltiminSession
-            .getDatabaseClient();
-
-    }
-
-
-    async function loadState() {
 
         const context =
             await window
@@ -140,10 +270,60 @@
         ) {
 
             throw new Error(
-                "An authenticated portal membership is required before loading portal data."
+                "An authenticated portal membership is required before using portal data."
             );
 
         }
+
+
+        return context;
+
+    }
+
+
+    async function getDatabaseClient() {
+
+        await getContext();
+
+
+        return await window
+            .AltiminSession
+            .getDatabaseClient();
+
+    }
+
+
+    async function requireAdmin() {
+
+        const context =
+            await getContext();
+
+
+        if (
+            context.membership.role !==
+            "admin"
+        ) {
+
+            throw new Error(
+                "Administrator access is required for this action."
+            );
+
+        }
+
+
+        return context;
+
+    }
+
+
+    // =====================================================
+    // READS
+    // =====================================================
+
+    async function loadState() {
+
+        const context =
+            await getContext();
 
 
         const client =
@@ -252,35 +432,35 @@
 
 
         const clients =
-            assertResult(
+            assertArrayResult(
                 clientsResult,
                 "Could not load clients"
             );
 
 
         const services =
-            assertResult(
+            assertArrayResult(
                 servicesResult,
                 "Could not load services"
             );
 
 
         const hardware =
-            assertResult(
+            assertArrayResult(
                 hardwareResult,
                 "Could not load hardware"
             );
 
 
         const assignments =
-            assertResult(
+            assertArrayResult(
                 assignmentsResult,
                 "Could not load client service assignments"
             );
 
 
         const requests =
-            assertResult(
+            assertArrayResult(
                 requestsResult,
                 "Could not load requests"
             );
@@ -495,9 +675,445 @@
     }
 
 
+    async function refreshStore() {
+
+        const state =
+            await loadState();
+
+
+        if (
+            window.PortalStore &&
+            typeof window.PortalStore.hydrate ===
+                "function"
+        ) {
+
+            return window.PortalStore
+                .hydrate(
+                    state
+                );
+
+        }
+
+
+        return state;
+
+    }
+
+
+    // =====================================================
+    // ADMIN WRITES
+    // =====================================================
+
+    async function createClient(
+        payload
+    ) {
+
+        await requireAdmin();
+
+
+        const client =
+            await getDatabaseClient();
+
+
+        const result =
+            await client
+                .from(
+                    "portal_clients"
+                )
+                .insert({
+
+                    company:
+                        payload.company,
+
+                    contact:
+                        payload.contact,
+
+                    email:
+                        payload.email,
+
+                    region:
+                        payload.region ||
+                        "South Africa",
+
+                    status:
+                        payload.status ||
+                        "Active"
+
+                })
+                .select(
+                    "id, company, contact, email, region, status"
+                )
+                .single();
+
+
+        return unwrapResult(
+            result,
+            "Could not create client"
+        );
+
+    }
+
+
+    async function updateClient(
+        clientId,
+        payload
+    ) {
+
+        await requireAdmin();
+
+
+        const client =
+            await getDatabaseClient();
+
+
+        const result =
+            await client
+                .from(
+                    "portal_clients"
+                )
+                .update({
+
+                    company:
+                        payload.company,
+
+                    contact:
+                        payload.contact,
+
+                    email:
+                        payload.email,
+
+                    region:
+                        payload.region,
+
+                    status:
+                        payload.status
+
+                })
+                .eq(
+                    "id",
+                    Number(
+                        clientId
+                    )
+                )
+                .select(
+                    "id, company, contact, email, region, status"
+                )
+                .single();
+
+
+        return unwrapResult(
+            result,
+            "Could not update client"
+        );
+
+    }
+
+
+    async function assignClientServices(
+        clientId,
+        serviceIds
+    ) {
+
+        await requireAdmin();
+
+
+        const client =
+            await getDatabaseClient();
+
+
+        const result =
+            await client
+                .rpc(
+                    "portal_assign_services",
+                    {
+                        p_client_id:
+                            Number(
+                                clientId
+                            ),
+
+                        p_service_ids:
+                            Array.isArray(
+                                serviceIds
+                            )
+                                ? serviceIds.map(
+                                    Number
+                                )
+                                : []
+                    }
+                );
+
+
+        unwrapResult(
+            result,
+            "Could not update client service assignments"
+        );
+
+
+        return true;
+
+    }
+
+
+    async function createService(
+        payload
+    ) {
+
+        await requireAdmin();
+
+
+        const client =
+            await getDatabaseClient();
+
+
+        const result =
+            await client
+                .from(
+                    "portal_services"
+                )
+                .insert({
+
+                    name:
+                        payload.name,
+
+                    code:
+                        payload.code,
+
+                    category:
+                        payload.category,
+
+                    description:
+                        payload.description,
+
+                    status:
+                        payload.status ||
+                        "Active"
+
+                })
+                .select(
+                    "id, code, name, category, description, status"
+                )
+                .single();
+
+
+        return unwrapResult(
+            result,
+            "Could not create service"
+        );
+
+    }
+
+
+    async function createHardware(
+        payload
+    ) {
+
+        await requireAdmin();
+
+
+        const client =
+            await getDatabaseClient();
+
+
+        const result =
+            await client
+                .from(
+                    "portal_hardware"
+                )
+                .insert({
+
+                    name:
+                        payload.name,
+
+                    code:
+                        payload.code,
+
+                    category:
+                        payload.category ||
+                        "Hardware",
+
+                    description:
+                        payload.description,
+
+                    status:
+                        payload.status ||
+                        "Active"
+
+                })
+                .select(
+                    "id, code, name, category, description, status"
+                )
+                .single();
+
+
+        return unwrapResult(
+            result,
+            "Could not create hardware"
+        );
+
+    }
+
+
+    async function updateRequestStatus(
+        requestReferenceValue,
+        status
+    ) {
+
+        await requireAdmin();
+
+
+        const requestId =
+            requestIdFromReference(
+                requestReferenceValue
+            );
+
+
+        const client =
+            await getDatabaseClient();
+
+
+        const result =
+            await client
+                .from(
+                    "portal_requests"
+                )
+                .update({
+                    status
+                })
+                .eq(
+                    "id",
+                    requestId
+                )
+                .select(
+                    "id, client_id, title, type, quantity, details, status, created_at"
+                )
+                .single();
+
+
+        return unwrapResult(
+            result,
+            "Could not update request status"
+        );
+
+    }
+
+
+    // =====================================================
+    // CLIENT / ADMIN REQUEST WRITE
+    // =====================================================
+
+    async function createRequest(
+        payload
+    ) {
+
+        const context =
+            await getContext();
+
+
+        const membership =
+            context.membership;
+
+
+        if (!membership?.id) {
+
+            throw new Error(
+                "The current portal membership does not have a valid member ID."
+            );
+
+        }
+
+
+        const clientId =
+            Number(
+                payload.clientId
+            );
+
+
+        if (
+            !Number.isFinite(
+                clientId
+            ) ||
+            clientId <= 0
+        ) {
+
+            throw new Error(
+                "A valid client ID is required to create a request."
+            );
+
+        }
+
+
+        const client =
+            await getDatabaseClient();
+
+
+        const result =
+            await client
+                .from(
+                    "portal_requests"
+                )
+                .insert({
+
+                    client_id:
+                        clientId,
+
+                    created_by:
+                        membership.id,
+
+                    submission_id:
+                        createSubmissionId(),
+
+                    title:
+                        payload.title,
+
+                    type:
+                        payload.type,
+
+                    quantity:
+                        Number(
+                            payload.quantity
+                        ),
+
+                    details:
+                        payload.details
+
+                })
+                .select(
+                    "id, client_id, title, type, quantity, details, status, created_at"
+                )
+                .single();
+
+
+        return unwrapResult(
+            result,
+            "Could not create request"
+        );
+
+    }
+
+
+    // =====================================================
+    // PUBLIC API
+    // =====================================================
+
     window.AltiminPortalApi = {
 
-        loadState
+        loadState,
+
+        refreshStore,
+
+        createClient,
+
+        updateClient,
+
+        assignClientServices,
+
+        createService,
+
+        createHardware,
+
+        updateRequestStatus,
+
+        createRequest
 
     };
 

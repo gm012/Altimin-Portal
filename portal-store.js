@@ -4,13 +4,13 @@
 // =========================================================
 //
 // PHASE 4 NOTE
-// Supabase is now the source of truth for portal data reads.
+// Supabase is now the source of truth for portal data reads and writes.
 // This module keeps the existing synchronous PortalStore API
 // so admin.js and dashboard.js can continue rendering without
 // a large UI rewrite.
 //
-// localStorage is retained only as a short-lived browser cache
-// and for the admin client-preview selection during this phase.
+// localStorage is retained only as a short-lived browser cache,
+// cross-tab sync channel and admin client-preview selection.
 // =========================================================
 
 (function () {
@@ -292,6 +292,30 @@
         return clone(
             memoryState
         );
+
+    }
+
+
+    function syncFromCache() {
+
+        const cached =
+            readCachedState();
+
+
+        if (cached) {
+
+            memoryState =
+                cached;
+
+
+            return clone(
+                memoryState
+            );
+
+        }
+
+
+        return load();
 
     }
 
@@ -605,6 +629,8 @@
     window.PortalStore = {
 
         load,
+
+        syncFromCache,
 
         save,
 
