@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Accept invitation | Altimin</title>
+
+    <meta
+        name="description"
+        content="Secure access to the Altimin Client Portal."
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="login.css"
+    >
+
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<script src="portal-ui.js"></script>
+</head>
+
+<body>
+
+    <main class="login-shell">
+
+        <!-- =====================================================
+             LEFT BRAND PANEL
+        ====================================================== -->
+
+        <aside class="brand-panel">
+
+            <div class="brand-panel-inner">
+
+                <header class="brand-header">
+
+                    <div class="logo-frame">
+
+                        <img
+                            src="images/altimin-logo.png"
+                            alt="Altimin Limited"
+                            class="altimin-logo"
+                        >
+
+                    </div>
+
+
+                    <span class="portal-label">
+                        CLIENT PORTAL
+                    </span>
+
+                </header>
+
+
+                <div class="brand-message">
+
+                    <span class="brand-eyebrow">
+                        ALTIMIN CLIENT ENVIRONMENT
+                    </span>
+
+                    <h2>
+                        Your services.
+                        <br>
+                        Your requests.
+                        <br>
+                        <span>One place.</span>
+                    </h2>
+
+                    <p>
+                        Secure access to the technology and services
+                        supporting your business.
+                    </p>
+
+                </div>
+
+
+                <footer class="brand-footer">
+
+                    <div class="secure-status">
+
+                        <span class="status-dot"></span>
+
+                        <div>
+
+                            <span>
+                                SECURE CLIENT ACCESS
+                            </span>
+
+                            <strong>
+                                Protected environment
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <a
+                        href="https://altimin.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="website-link"
+                    >
+                        Visit Altimin.com
+                        <span>↗</span>
+                    </a>
+
+                </footer>
+
+            </div>
+
+        </aside>
+
+
+        <!-- =====================================================
+             LOGIN PANEL
+        ====================================================== -->
+
+        <section class="login-panel">
+
+            <div class="login-panel-inner">
+
+                <div class="login-heading">
+
+                    <span class="login-eyebrow">
+                        SECURE CLIENT ACCESS
+                    </span>
+
+                    <h1>
+                        Welcome to Altimin.
+                        <span>
+                            Set up your portal access.
+                        </span>
+                    </h1>
+
+                    <p>
+                        Access your Altimin services, requests,
+                        hardware requirements and account information.
+                    </p>
+
+                </div>
+
+
+                <div id="clerkSignUp"></div>
+<p id="acceptMessage" role="status">Preparing your invitation…</p>
+<button type="button" id="retryAccess" hidden>Check access again</button>
+<button type="button" id="switchAccount" hidden>Sign out / use another account</button>
+<p><a href="index.html">Return to sign in</a></p>
+
+
+                <footer class="login-footer">
+
+                    <span>
+                        © <span id="currentYear"></span> Altimin Limited
+                    </span>
+
+                    <span>
+                        Client Portal
+                    </span>
+
+                </footer>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script src="portal-config.js"></script>
+<script src="portal-session.js"></script>
+<script src="accept-invitation.js"></script>
+
+</body>
+
+</html>
