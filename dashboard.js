@@ -282,7 +282,6 @@ async function refreshFromSupabase() {
 function getFallbackClientIdentity() {
 
     const fallbackName =
-        activeClient?.contact ||
         "Altimin User";
 
 
@@ -526,7 +525,7 @@ function renderServices() {
 
                             <span class="service-code">
 
-                                ${service.code}
+                                ${escapeHtml(service.code)}
 
                             </span>
 
@@ -534,7 +533,7 @@ function renderServices() {
 
                             <span class="service-status">
 
-                                ${service.status}
+                                ${escapeHtml(service.status)}
 
                             </span>
 
@@ -552,7 +551,7 @@ function renderServices() {
 
                             <span>
 
-                                ${service.category}
+                                ${escapeHtml(service.category)}
 
                             </span>
 
@@ -560,7 +559,7 @@ function renderServices() {
 
                             <h3>
 
-                                ${service.name}
+                                ${escapeHtml(service.name)}
 
                             </h3>
 
@@ -568,7 +567,7 @@ function renderServices() {
 
                             <p>
 
-                                ${service.description}
+                                ${escapeHtml(service.description)}
 
                             </p>
 
@@ -806,7 +805,7 @@ function renderRequests() {
 
                             <strong>
 
-                                ${request.title}
+                                ${escapeHtml(request.title)}
 
                             </strong>
 
@@ -814,7 +813,7 @@ function renderRequests() {
 
                             <span>
 
-                                ${request.id}
+                                ${request.id}<details><summary>Request details</summary>${escapeHtml(request.details || "No additional details.")}</details>
 
                             </span>
 
@@ -826,7 +825,7 @@ function renderRequests() {
 
                         <td>
 
-                            ${request.type}
+                            ${escapeHtml(request.type)}
 
                         </td>
 
@@ -834,7 +833,7 @@ function renderRequests() {
 
                         <td>
 
-                            ${request.date}
+                            ${escapeHtml(request.date)}
 
                         </td>
 
@@ -850,7 +849,7 @@ function renderRequests() {
 
                             )}">
 
-                                ${request.status}
+                                ${escapeHtml(request.status)}
 
                             </span>
 
@@ -1070,9 +1069,9 @@ function populateRequestCategories(
 
                 item => `
 
-                    <option value="${item.name}">
+                    <option value="${escapeHtml(item.name)}">
 
-                        ${item.name}
+                        ${escapeHtml(item.name)}
 
                     </option>
 
@@ -1658,9 +1657,7 @@ if (signOutButton) {
                 );
 
 
-                window.location.replace(
-                    "index.html"
-                );
+                window.alert("Sign-out failed. Check your connection and try again."); signOutButton.disabled = false;
 
             }
 
@@ -1822,6 +1819,18 @@ async function initialiseDashboardPage() {
         refreshState();
 
 
+        if (!activeClient || activeClient.status !== "Active") {
+            if (context.membership.role === "admin" && !activeClient) {
+                location.replace(AltiminPaths.url("admin.html")); return;
+            }
+            window.altiminAccessError("Your company account is unavailable or inactive. Contact Altimin."); return;
+        }
+        if (context.membership.role === "admin") {
+            const indicator = document.createElement("div");
+            indicator.textContent = "ADMIN PREVIEW";
+            indicator.style.cssText = "position:fixed;top:8px;right:16px;z-index:1000;background:#102d55;color:white;padding:8px 14px;border-radius:8px;font:12px Arial";
+            document.body.append(indicator);
+        }
         authenticatedIdentity =
             context.identity;
 
@@ -1860,6 +1869,7 @@ async function initialiseDashboardPage() {
 
 
         renderAll();
+        document.documentElement.classList.remove("auth-pending");
 
     } catch (
         error
@@ -1871,9 +1881,7 @@ async function initialiseDashboardPage() {
         );
 
 
-        window.location.replace(
-            "index.html"
-        );
+        window.altiminAccessError("Portal data could not be loaded. Check your connection, or contact your administrator.");
 
     }
 
@@ -1881,4 +1889,16 @@ async function initialiseDashboardPage() {
 
 
 
+// Keep navigation and sign-out reachable on small screens.
+mobileMenuButton?.setAttribute("aria-expanded", "false");
+mobileMenuButton?.addEventListener("click", () => {
+    const open = portalSidebar.classList.toggle("mobile-open");
+    mobileMenuButton.setAttribute("aria-expanded", String(open));
+});
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+        portalSidebar?.classList.remove("mobile-open");
+        mobileMenuButton?.setAttribute("aria-expanded", "false");
+    }
+});
 initialiseDashboardPage();

@@ -10,7 +10,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Altimin Client Portal</title>
+    <title>Accept invitation | Altimin</title>
 
     <meta
         name="description"
@@ -150,9 +150,9 @@
                     </span>
 
                     <h1>
-                        Welcome back.
+                        Welcome to Altimin.
                         <span>
-                            Sign in to continue.
+                            Set up your portal access.
                         </span>
                     </h1>
 
@@ -164,119 +164,11 @@
                 </div>
 
 
-                <form
-                    class="login-form"
-                    id="loginForm"
-                >
-
-                    <!-- EMAIL -->
-
-                    <div class="form-field">
-
-                        <label for="email">
-                            EMAIL ADDRESS
-                        </label>
-
-                        <input
-                            type="text"
-                            id="email"
-                            name="email"
-                            placeholder="name@company.com"
-                            autocomplete="email"
-                            required
-                        >
-
-                    </div>
-
-
-                    <!-- PASSWORD -->
-
-                    <div class="form-field">
-
-                        <div class="field-header">
-
-                            <label for="password">
-                                PASSWORD
-                            </label>
-
-                            <button
-                                type="button"
-                                class="forgot-button"
-                                id="forgotPassword"
-                            >
-                                Forgot password?
-                            </button>
-
-                        </div>
-
-
-                        <div class="password-field">
-
-                            <input
-                                type="password"
-                                id="password"
-                                name="password"
-                                placeholder="Enter your password"
-                                autocomplete="current-password"
-                                required
-                            >
-
-                            <button
-                                type="button"
-                                class="password-toggle"
-                                id="passwordToggle"
-                                aria-label="Show password"
-                            >
-                                SHOW
-                            </button>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- MESSAGE -->
-
-                    <div
-                        class="login-message"
-                        id="loginMessage"
-                        aria-live="polite"
-                    ></div>
-
-
-                    <!-- SIGN IN -->
-
-                    <button
-                        type="submit"
-                        class="login-button"
-                    >
-
-                        <span>
-                            Sign in to portal
-                        </span>
-
-                        <span class="login-arrow">
-                            →
-                        </span>
-
-                    </button>
-
-
-                    <!-- PROTOTYPE NOTICE -->
-
-                    <div class="prototype-access">
-
-                        <span>
-                            PROTOTYPE ACCESS
-                        </span>
-
-                        <p>
-                            Enter any email and password to preview the portal.
-                        </p>
-
-                    </div>
-
-                </form>
+                <div id="clerkSignUp"></div>
+<p id="acceptMessage" role="status">Preparing your invitation…</p>
+<button type="button" id="retryAccess" hidden>Check access again</button>
+<button type="button" id="switchAccount" hidden>Sign out / use another account</button>
+<p><a href="index.html">Return to sign in</a></p>
 
 
                 <footer class="login-footer">
@@ -298,7 +190,9 @@
     </main>
 
 
-    <script src="login.js"></script>
+    <script src="portal-config.js"></script>
+<script src="portal-session.js"></script>
+<script src="accept-invitation.js"></script>
 
 </body>
 

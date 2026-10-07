@@ -16,6 +16,8 @@
         null;
 
 
+    let watchedUserId = null;
+
     let databaseClient =
         null;
 
@@ -312,7 +314,13 @@
         }
 
 
+        if (!window.__internal_ClerkUICtor) {
+            const domain = getClerkDomain(config.clerkPublishableKey);
+            await loadScript("https://" + domain + "/npm/@clerk/ui@1/dist/ui.browser.js",
+                { crossorigin: "anonymous" });
+        }
         await window.Clerk.load({
+            ui: { ClerkUI: window.__internal_ClerkUICtor },
 
             afterSignOutUrl:
                 new URL(
@@ -599,7 +607,9 @@
     // INITIALISE
     // =====================================================
 
-    async function init() {
+    async function init(options = {}) {
+        if (options.refresh) { sessionContext = null; initPromise = null; }
+
 
         if (sessionContext) {
 
@@ -688,6 +698,17 @@
                 };
 
 
+                if (!watchedUserId) {
+                    watchedUserId = window.Clerk.user.id;
+                    window.Clerk.addListener(({ session, user }) => {
+                        if (typeof session === "undefined") return;
+                        if (!session || user?.id !== watchedUserId) {
+                            window.PortalStore?.reset();
+                            document.documentElement.classList.add("auth-pending");
+                            location.replace(AltiminPaths.url("index.html"));
+                        }
+                    });
+                }
                 return sessionContext;
 
             })()
@@ -717,37 +738,18 @@
         allowedRoles = []
     ) {
 
-        const context =
-            await init();
-
-
-        const membership =
-            context.membership;
-
-
-        const hasAllowedRole =
-            !allowedRoles.length ||
-            allowedRoles.includes(
-                membership?.role
-            );
-
-
-        if (
-            !context.signedIn ||
-            !membership ||
-            !membership.active ||
-            !hasAllowedRole
-        ) {
-
-            window.location.replace(
-                "index.html"
-            );
-
-
-            return null;
-
+        const context = await init({ refresh:true });
+        const membership = context.membership;
+        if (!context.signedIn) {
+            location.replace(AltiminPaths.url("index.html")); return null;
         }
-
+        if (!membership || !membership.active) {
+            location.replace(AltiminPaths.url("accept-invitation.html")); return null;
+        }
+        if (allowedRoles.length && !allowedRoles.includes(membership.role)) {
+            location.replace(AltiminPaths.url(membership.role === "client" ? "dashboard.html" : "index.html"));
+            return null;
+        }
 
         return context;
 
@@ -769,7 +771,8 @@
         );
 
 
-        await window.Clerk.signOut();
+        window.PortalStore?.reset();
+        await window.Clerk.signOut({ redirectUrl: AltiminPaths.url('index.html') });
 
 
         sessionContext =

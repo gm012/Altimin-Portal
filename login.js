@@ -559,7 +559,7 @@
             },
 
             afterSignOutUrl:
-                window.location.origin
+                new URL('index.html', window.location.href).href
 
         });
 
@@ -859,10 +859,7 @@
                 await getPortalMembership();
 
 
-            console.log(
-                "Altimin membership:",
-                membership
-            );
+
 
 
             // =============================================
@@ -874,12 +871,8 @@
                 !membership.active
             ) {
 
-                await window.Clerk.signOut();
-
-
-                throw new Error(
-                    "This account does not have access to the Altimin portal."
-                );
+                window.location.replace(AltiminPaths.url("accept-invitation.html"));
+                return;
 
             }
 

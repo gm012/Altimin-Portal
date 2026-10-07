@@ -801,7 +801,7 @@ function renderOverview() {
 
                             <strong class="table-title">
 
-                                ${request.title}
+                                ${escapeHtml(request.title)}
 
                             </strong>
 
@@ -809,7 +809,7 @@ function renderOverview() {
 
                             <span class="table-subtitle">
 
-                                ${request.id}
+                                ${request.id}<details><summary>Request details</summary>${escapeHtml(request.details || "No additional details.")}</details>
 
                             </span>
 
@@ -821,11 +821,7 @@ function renderOverview() {
 
                         <td>
 
-                            ${getClientName(
-
-                                request.clientId
-
-                            )}
+                            ${escapeHtml(getClientName(request.clientId))}
 
                         </td>
 
@@ -833,7 +829,7 @@ function renderOverview() {
 
                         <td>
 
-                            ${request.type}
+                            ${escapeHtml(request.type)}
 
                         </td>
 
@@ -849,7 +845,7 @@ function renderOverview() {
 
                             )}">
 
-                                ${request.status}
+                                ${escapeHtml(request.status)}
 
                             </span>
 
@@ -915,13 +911,13 @@ function renderClients(
 
                     `
 
-                        ${client.company}
+                        ${escapeHtml(client.company)}
 
-                        ${client.contact}
+                        ${escapeHtml(client.contact)}
 
-                        ${client.email}
+                        ${escapeHtml(client.email)}
 
-                        ${client.region}
+                        ${escapeHtml(client.region)}
 
                     `
 
@@ -983,7 +979,7 @@ function renderClients(
 
                             tabindex="0"
 
-                            title="Manage ${client.company}"
+                            title="Manage ${escapeHtml(client.company)}"
 
                         >
 
@@ -995,7 +991,7 @@ function renderClients(
 
                                 <strong class="table-title">
 
-                                    ${client.company}
+                                    ${escapeHtml(client.company)}
 
                                 </strong>
 
@@ -1003,7 +999,7 @@ function renderClients(
 
                                 <span class="table-subtitle">
 
-                                    ${client.email}
+                                    ${escapeHtml(client.email)}
 
                                 </span>
 
@@ -1015,7 +1011,7 @@ function renderClients(
 
                             <td>
 
-                                ${client.contact}
+                                ${escapeHtml(client.contact)}
 
                             </td>
 
@@ -1023,7 +1019,7 @@ function renderClients(
 
                             <td>
 
-                                ${client.region}
+                                ${escapeHtml(client.region)}
 
                             </td>
 
@@ -1047,7 +1043,7 @@ function renderClients(
 
                                 )}">
 
-                                    ${client.status}
+                                    ${escapeHtml(client.status)}
 
                                 </span>
 
@@ -1211,6 +1207,315 @@ function bindClientRows() {
 
 
 
+
+
+// =========================================================
+
+// CLIENT PORTAL INVITATIONS
+
+// =========================================================
+
+
+function setPortalInviteMessage(
+
+    message,
+
+    isError = false
+
+) {
+
+
+    const status =
+
+        document.getElementById(
+
+            "portalInviteStatus"
+
+        );
+
+
+    if (!status) {
+
+        return;
+
+    }
+
+
+    status.textContent =
+
+        message;
+
+
+    status.style.color =
+
+        isError
+
+            ? "#b42318"
+
+            : "#6f7891";
+
+
+}
+
+
+
+function applyPortalInviteState(
+
+    invitation
+
+) {
+
+
+    const button =
+
+        document.getElementById(
+
+            "sendPortalInviteButton"
+
+        );
+
+
+    if (!button) {
+
+        return;
+
+    }
+
+
+    if (invitation?.status === "active_user" || invitation?.status === "inactive_user") {
+        button.disabled = true;
+        button.textContent = invitation.status === "active_user" ? "ACTIVE PORTAL USER" : "INACTIVE PORTAL USER";
+        setPortalInviteMessage("Portal membership exists for this client. Access changes require administrator review.");
+        return;
+    }
+    if (invitation?.status === "pending" && invitation.expires_at &&
+        new Date(invitation.expires_at) <= new Date()) invitation = { ...invitation, status:"expired" };
+    if (!invitation) {
+
+        button.disabled =
+
+            false;
+
+
+        button.textContent =
+
+            "SEND PORTAL INVITE";
+
+
+        setPortalInviteMessage(
+
+            "No portal invitation has been sent for this client yet."
+
+        );
+
+
+        return;
+
+    }
+
+
+    const status =
+
+        String(
+
+            invitation.status ||
+
+            "pending"
+
+        ).toLowerCase();
+
+
+    if (
+
+        status === "pending"
+
+    ) {
+
+        button.disabled =
+
+            true;
+
+
+        button.textContent =
+
+            "INVITATION PENDING";
+
+
+        setPortalInviteMessage(
+
+            `Portal invitation sent to ${invitation.email}.`
+
+        );
+
+
+        return;
+
+    }
+
+
+    if (
+
+        status === "accepted"
+
+    ) {
+
+        button.disabled =
+
+            true;
+
+
+        button.textContent =
+
+            "PORTAL ACCESS ACCEPTED";
+
+
+        setPortalInviteMessage(
+
+            `${invitation.email} has accepted portal access.`
+
+        );
+
+
+        return;
+
+    }
+
+
+    button.disabled =
+
+        false;
+
+
+    button.textContent =
+
+        "SEND PORTAL INVITE";
+
+
+    setPortalInviteMessage(
+
+        `Previous invitation status: ${status}. A new invitation can be sent.`
+
+    );
+
+
+}
+
+
+
+async function refreshClientInvitationStatus(
+
+    clientId
+
+) {
+
+
+    const button =
+
+        document.getElementById(
+
+            "sendPortalInviteButton"
+
+        );
+
+
+    if (!button) {
+
+        return;
+
+    }
+
+
+    button.disabled =
+
+        true;
+
+
+    button.textContent =
+
+        "CHECKING INVITE...";
+
+
+    try {
+
+        const invitation =
+
+            await window
+
+                .AltiminPortalApi
+
+                .getClientInvitation(
+
+                    clientId
+
+                );
+
+
+        if (
+
+            Number(
+
+                selectedClientId
+
+            ) !==
+
+            Number(
+
+                clientId
+
+            )
+
+        ) {
+
+            return;
+
+        }
+
+
+        applyPortalInviteState(
+
+            invitation
+
+        );
+
+
+    } catch (
+
+        error
+
+    ) {
+
+        console.error(
+
+            "Could not load portal invitation status:",
+
+            error
+
+        );
+
+
+        button.disabled =
+
+            false;
+
+
+        button.textContent =
+
+            "SEND PORTAL INVITE";
+
+
+        setPortalInviteMessage(
+
+            "Invitation status could not be loaded.",
+
+            true
+
+        );
+
+
+    }
+
+
+}
 
 
 // =========================================================
@@ -1393,7 +1698,7 @@ function openClientManager(
 
                                 <strong>
 
-                                    ${service.name}
+                                    ${escapeHtml(service.name)}
 
                                 </strong>
 
@@ -1401,7 +1706,7 @@ function openClientManager(
 
                                 <small>
 
-                                    ${service.category || "Altimin Service"}
+                                    ${escapeHtml(service.category || "Altimin Service")}
 
                                 </small>
 
@@ -1415,7 +1720,7 @@ function openClientManager(
 
                             <span class="client-service-code">
 
-                                ${service.code}
+                                ${escapeHtml(service.code)}
 
                             </span>
 
@@ -1473,21 +1778,59 @@ function openClientManager(
 
 
 
-        <button
+        <div
 
-            type="button"
-
-            class="preview-client-button"
-
-            id="previewClientButton"
+            style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;"
 
         >
 
-            PREVIEW CLIENT PORTAL →
+            <button
 
-        </button>
+                type="button"
+
+                class="preview-client-button"
+
+                id="sendPortalInviteButton"
+
+            >
+
+                SEND PORTAL INVITE
+
+            </button>
 
 
+
+            <button
+
+                type="button"
+
+                class="preview-client-button"
+
+                id="previewClientButton"
+
+            >
+
+                PREVIEW CLIENT PORTAL →
+
+            </button>
+
+        </div>
+
+
+
+    </div>
+
+
+
+    <div
+
+        id="portalInviteStatus"
+
+        style="margin:-6px 0 22px;font-size:12px;line-height:1.5;color:#6f7891;"
+
+    >
+
+        Checking portal invitation status...
 
     </div>
 
@@ -1513,7 +1856,7 @@ function openClientManager(
 
                 type="text"
 
-                value="${client.company}"
+                value="${escapeHtml(client.company)}"
 
                 required
 
@@ -1545,7 +1888,7 @@ function openClientManager(
 
                 type="text"
 
-                value="${client.contact}"
+                value="${escapeHtml(client.contact)}"
 
                 required
 
@@ -1577,7 +1920,7 @@ function openClientManager(
 
                 type="email"
 
-                value="${client.email}"
+                value="${escapeHtml(client.email)}"
 
                 required
 
@@ -1867,6 +2210,228 @@ function openClientManager(
 
 
 
+    const sendPortalInviteButton =
+
+        document.getElementById(
+
+            "sendPortalInviteButton"
+
+        );
+
+
+
+    if (sendPortalInviteButton) {
+
+
+        sendPortalInviteButton.addEventListener(
+
+            "click",
+
+            async () => {
+
+
+                refreshState();
+
+
+                const currentClient =
+
+                    PortalStore.getClientById(
+
+                        state,
+
+                        clientId
+
+                    );
+
+
+                if (!currentClient) {
+
+                    return;
+
+                }
+
+
+                const emailField =
+
+                    document.getElementById(
+
+                        "fieldEmail"
+
+                    );
+
+
+                const currentEmail =
+
+                    String(
+
+                        emailField?.value ||
+
+                        ""
+
+                    )
+
+                        .trim()
+
+                        .toLowerCase();
+
+
+                const savedEmail =
+
+                    String(
+
+                        currentClient.email ||
+
+                        ""
+
+                    )
+
+                        .trim()
+
+                        .toLowerCase();
+
+
+                if (
+
+                    currentEmail !==
+
+                    savedEmail
+
+                ) {
+
+                    window.alert(
+
+                        "Save the client changes first, then send the portal invitation to the updated email address."
+
+                    );
+
+
+                    return;
+
+                }
+
+
+                const confirmed =
+
+                    window.confirm(
+
+                        `Send a portal invitation to ${currentClient.email}?`
+
+                    );
+
+
+                if (!confirmed) {
+
+                    return;
+
+                }
+
+
+                sendPortalInviteButton.disabled =
+
+                    true;
+
+
+                sendPortalInviteButton.textContent =
+
+                    "SENDING INVITE...";
+
+
+                setPortalInviteMessage(
+
+                    "Sending secure Clerk invitation..."
+
+                );
+
+
+                try {
+
+                    const result =
+
+                        await window
+
+                            .AltiminPortalApi
+
+                            .sendClientInvitation(
+
+                                currentClient.id
+
+                            );
+
+
+                    setPortalInviteMessage(
+
+                        `Portal invitation sent to ${result.email}.`
+
+                    );
+
+
+                    sendPortalInviteButton.textContent =
+
+                        "INVITATION PENDING";
+
+
+                    sendPortalInviteButton.disabled =
+
+                        true;
+
+
+                } catch (
+
+                    error
+
+                ) {
+
+                    console.error(
+
+                        "Altimin portal invitation failed:",
+
+                        error
+
+                    );
+
+
+                    sendPortalInviteButton.textContent =
+
+                        "SEND PORTAL INVITE";
+
+
+                    sendPortalInviteButton.disabled =
+
+                        false;
+
+
+                    setPortalInviteMessage(
+
+                        error.message ||
+
+                        "The portal invitation could not be sent.",
+
+                        true
+
+                    );
+
+
+                    window.alert(
+
+                        error.message ||
+
+                        "The portal invitation could not be sent."
+
+                    );
+
+
+                }
+
+
+            }
+
+        );
+
+
+    }
+
+
+
     const previewClientButton =
 
         document.getElementById(
@@ -1939,13 +2504,7 @@ function openClientManager(
 
 
 
-                window.open(
-
-                    "dashboard.html",
-
-                    "_blank"
-
-                );
+                window.open(AltiminPaths.url("dashboard.html") + "?client=" + encodeURIComponent(client.id), "_blank", "noopener");
 
 
 
@@ -1962,6 +2521,14 @@ function openClientManager(
 
 
     openDrawerShell();
+
+
+
+    refreshClientInvitationStatus(
+
+        client.id
+
+    );
 
 
 
@@ -1997,7 +2564,7 @@ function renderServices() {
 
                         <span class="catalogue-code">
 
-                            ${service.code}
+                            ${escapeHtml(service.code)}
 
                         </span>
 
@@ -2005,7 +2572,7 @@ function renderServices() {
 
                         <h3>
 
-                            ${service.name}
+                            ${escapeHtml(service.name)}
 
                         </h3>
 
@@ -2013,7 +2580,7 @@ function renderServices() {
 
                         <p>
 
-                            ${service.description}
+                            ${escapeHtml(service.description)}
 
                         </p>
 
@@ -2037,7 +2604,7 @@ function renderServices() {
 
                             )}">
 
-                                ${service.status}
+                                ${escapeHtml(service.status)}
 
                             </span>
 
@@ -2089,7 +2656,7 @@ function renderHardware() {
 
                         <span class="catalogue-code">
 
-                            ${item.code}
+                            ${escapeHtml(item.code)}
 
                         </span>
 
@@ -2097,7 +2664,7 @@ function renderHardware() {
 
                         <h3>
 
-                            ${item.name}
+                            ${escapeHtml(item.name)}
 
                         </h3>
 
@@ -2105,7 +2672,7 @@ function renderHardware() {
 
                         <p>
 
-                            ${item.description}
+                            ${escapeHtml(item.description)}
 
                         </p>
 
@@ -2129,7 +2696,7 @@ function renderHardware() {
 
                             )}">
 
-                                ${item.status}
+                                ${escapeHtml(item.status)}
 
                             </span>
 
@@ -2189,7 +2756,7 @@ function renderRequests() {
 
                             <strong class="table-title">
 
-                                ${request.title}
+                                ${escapeHtml(request.title)}
 
                             </strong>
 
@@ -2197,7 +2764,7 @@ function renderRequests() {
 
                             <span class="table-subtitle">
 
-                                ${request.id}
+                                ${request.id}<details><summary>Request details</summary>${escapeHtml(request.details || "No additional details.")}</details>
 
                             </span>
 
@@ -2209,11 +2776,7 @@ function renderRequests() {
 
                         <td>
 
-                            ${getClientName(
-
-                                request.clientId
-
-                            )}
+                            ${escapeHtml(getClientName(request.clientId))}
 
                         </td>
 
@@ -2221,7 +2784,7 @@ function renderRequests() {
 
                         <td>
 
-                            ${request.type}
+                            ${escapeHtml(request.type)}
 
                         </td>
 
@@ -2229,7 +2792,7 @@ function renderRequests() {
 
                         <td>
 
-                            ${request.date}
+                            ${escapeHtml(request.date)}
 
                         </td>
 
@@ -3860,6 +4423,7 @@ async function initialiseAdminPage() {
 
 
         renderAll();
+        document.documentElement.classList.remove("auth-pending");
 
     } catch (
         error
@@ -3871,9 +4435,7 @@ async function initialiseAdminPage() {
         );
 
 
-        window.location.replace(
-            "index.html"
-        );
+        window.altiminAccessError("Portal data could not be loaded. Check your connection, or contact your administrator.");
 
     }
 
@@ -3910,9 +4472,7 @@ if (adminSignOutButton) {
                 );
 
 
-                window.location.replace(
-                    "index.html"
-                );
+                window.alert("Sign-out failed. Check your connection and try again.");
 
             }
 

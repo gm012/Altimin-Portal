@@ -1,0 +1,8 @@
+# JWT verification occurs inside the invite handler using Clerk JWKS.
+# Webhook verification occurs inside its handler using Clerk's signing secret.
+[functions.send-client-invite]
+verify_jwt = false
+
+[functions.clerk-webhook]
+verify_jwt = false
+

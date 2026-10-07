@@ -3,11 +3,11 @@
 // SUPABASE DATA API
 // =========================================================
 //
-// PHASE 4 / STEP 05
+// PHASE 5 / STEP 02
 // Supabase is the source of truth for portal reads and writes.
-// This module converts the relational Supabase schema into
-// the legacy state shape expected by admin.js/dashboard.js
-// and exposes the write operations used by those pages.
+// This module also exposes the administrator-only client
+// invitation flow through a secured Supabase Edge Function.
+// Clerk secret credentials never enter browser JavaScript.
 // =========================================================
 
 (function () {
@@ -63,6 +63,64 @@
         )
             ? data
             : [];
+
+    }
+
+
+    async function functionErrorMessage(
+        error,
+        fallbackMessage
+    ) {
+
+        if (
+            error?.context &&
+            typeof error.context.json ===
+                "function"
+        ) {
+
+            try {
+
+                const payload =
+                    await error.context.json();
+
+
+                if (
+                    payload?.error &&
+                    typeof payload.error ===
+                        "string"
+                ) {
+
+                    return payload.error;
+
+                }
+
+
+                if (
+                    payload?.message &&
+                    typeof payload.message ===
+                        "string"
+                ) {
+
+                    return payload.message;
+
+                }
+
+            } catch (
+                parseError
+            ) {
+
+                console.warn(
+                    "Could not parse Edge Function error response.",
+                    parseError
+                );
+
+            }
+
+        }
+
+
+        return error?.message ||
+            fallbackMessage;
 
     }
 
@@ -1022,10 +1080,7 @@
         }
 
 
-        const clientId =
-            Number(
-                payload.clientId
-            );
+        const clientId = Number(membership.role === "client" ? membership.client_id : payload.clientId);
 
 
         if (
@@ -1092,6 +1147,154 @@
 
 
     // =====================================================
+    // CLIENT INVITATIONS
+    // =====================================================
+
+    async function getClientInvitation(
+        clientId
+    ) {
+
+        await requireAdmin();
+
+
+        const client =
+            await getDatabaseClient();
+
+
+        const members = await client.from("portal_members").select("id,active")
+            .eq("client_id",Number(clientId)).limit(10);
+        if (members.error) throw new Error("Portal membership status could not be checked.");
+        if (members.data?.length) return { status:members.data.some(m=>m.active) ? "active_user" : "inactive_user" };
+        const result =
+            await client
+                .from(
+                    "portal_invitations"
+                )
+                .select(
+                    "id, client_id, email, clerk_invitation_id, status, expires_at, created_at, updated_at"
+                )
+                .eq(
+                    "client_id",
+                    Number(
+                        clientId
+                    )
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending:
+                            false
+                    }
+                )
+                .limit(
+                    1
+                )
+                .maybeSingle();
+
+
+        return unwrapResult(
+            result,
+            "Could not load client invitation status"
+        );
+
+    }
+
+
+    async function sendClientInvitation(
+        clientId
+    ) {
+
+        await requireAdmin();
+
+
+        if (
+            !window.Clerk?.session
+        ) {
+
+            throw new Error(
+                "A Clerk session is required to send an invitation."
+            );
+
+        }
+
+
+        const token =
+            await window.Clerk
+                .session
+                .getToken();
+
+
+        if (!token) {
+
+            throw new Error(
+                "Could not obtain the signed-in administrator token."
+            );
+
+        }
+
+
+        const client =
+            await getDatabaseClient();
+
+
+        const {
+            data,
+            error
+        } =
+            await client
+                .functions
+                .invoke(
+                    "send-client-invite",
+                    {
+                        body: {
+                            clientId:
+                                Number(
+                                    clientId
+                                )
+                        },
+
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`
+                        }
+                    }
+                );
+
+
+        if (error) {
+
+            const message =
+                await functionErrorMessage(
+                    error,
+                    "The portal invitation could not be sent."
+                );
+
+
+            throw new Error(
+                message
+            );
+
+        }
+
+
+        if (
+            !data?.success
+        ) {
+
+            throw new Error(
+                data?.error ||
+                "The portal invitation could not be sent."
+            );
+
+        }
+
+
+        return data;
+
+    }
+
+
+    // =====================================================
     // PUBLIC API
     // =====================================================
 
@@ -1113,7 +1316,11 @@
 
         updateRequestStatus,
 
-        createRequest
+        createRequest,
+
+        getClientInvitation,
+
+        sendClientInvitation
 
     };
 
