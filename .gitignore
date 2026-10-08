@@ -6,3 +6,5 @@ supabase/.temp/
 supabase/.branches/
 test-results/
 _site/
+
+/audit-evidence/

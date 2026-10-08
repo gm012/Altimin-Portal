@@ -563,11 +563,6 @@
 
         });
 
-
-        console.log(
-            "Altimin: Clerk loaded."
-        );
-
     }
 
 
@@ -599,11 +594,6 @@
             );
 
         }
-
-
-        console.log(
-            "Altimin: Supabase client loaded."
-        );
 
     }
 
@@ -652,11 +642,6 @@
                 }
 
             );
-
-
-        console.log(
-            "Altimin: Supabase client connected to Clerk token provider."
-        );
 
     }
 
@@ -743,12 +728,6 @@
 
         const clerkUserId =
             window.Clerk.user.id;
-
-
-        console.log(
-            "Altimin: Checking portal membership for:",
-            clerkUserId
-        );
 
 
         const {
@@ -886,10 +865,6 @@
                 "admin"
             ) {
 
-                console.log(
-                    "Altimin: Admin authenticated."
-                );
-
 
                 closeClerkSignIn();
 
@@ -913,11 +888,6 @@
                     "client" &&
                 membership.client_id
             ) {
-
-                console.log(
-                    "Altimin: Client authenticated.",
-                    membership.client_id
-                );
 
 
                 closeClerkSignIn();
@@ -1013,20 +983,10 @@
                     !user
                 ) {
 
-                    console.log(
-                        "Altimin: No active Clerk session."
-                    );
-
 
                     return;
 
                 }
-
-
-                console.log(
-                    "Clerk session became active:",
-                    user.id
-                );
 
 
                 try {
@@ -1084,11 +1044,6 @@
             );
 
         }
-
-
-        console.log(
-            "Altimin: Additional Clerk verification required."
-        );
 
 
         showMessage(
@@ -1153,12 +1108,6 @@
                 });
 
 
-        console.log(
-            "Altimin Clerk sign-in status:",
-            signIn.status
-        );
-
-
         // =================================================
         // PASSWORD SIGN-IN COMPLETE
         // =================================================
@@ -1168,10 +1117,6 @@
                 "complete" &&
             signIn.createdSessionId
         ) {
-
-            console.log(
-                "Altimin: Clerk password authentication complete."
-            );
 
 
             await window.Clerk.setActive({
@@ -1372,61 +1317,6 @@
     // FORGOT PASSWORD
     // =====================================================
 
-    if (forgotPassword) {
-
-        forgotPassword.addEventListener(
-            "click",
-            event => {
-
-                event.preventDefault();
-
-
-                if (
-                    !authReady ||
-                    !window.Clerk
-                ) {
-
-                    showMessage(
-                        "Secure authentication is still loading. Please try again.",
-                        "error"
-                    );
-
-
-                    return;
-
-                }
-
-
-                const email =
-                    emailInput
-                        ? emailInput
-                            .value
-                            .trim()
-                        : "";
-
-
-                showMessage(
-                    "Use the secure Clerk window to recover your account."
-                );
-
-
-                window.Clerk.openSignIn({
-
-                    initialValues: {
-
-                        emailAddress:
-                            email
-
-                    }
-
-                });
-
-            }
-        );
-
-    }
-
-
     // =====================================================
     // INITIALISE AUTHENTICATION
     // =====================================================
@@ -1495,11 +1385,6 @@
                 window.Clerk.user
             ) {
 
-                console.log(
-                    "Altimin: Existing Clerk session found:",
-                    window.Clerk.user.id
-                );
-
 
                 showMessage(
                     "Existing session found. Opening your Altimin environment..."
@@ -1535,11 +1420,6 @@
                 emailInput.focus();
 
             }
-
-
-            console.log(
-                "Altimin: Authentication ready."
-            );
 
         } catch (
             error

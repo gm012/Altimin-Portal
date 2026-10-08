@@ -1063,6 +1063,9 @@
         payload
     ) {
 
+        if (!Number.isInteger(Number(payload.quantity)) || Number(payload.quantity) < 1 || Number(payload.quantity) > 9999 || !String(payload.details || '').trim() || String(payload.details).length > 5000) {
+            throw new Error('Enter a whole quantity from 1 to 9999 and requirements up to 5000 characters.');
+        }
         const context =
             await getContext();
 

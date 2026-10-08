@@ -1207,10 +1207,10 @@ img {
 
 
 /* =========================================================
-   PROTOTYPE
+   SECURE ACCESS
 ========================================================= */
 
-.prototype-access {
+.secure-access {
 
     margin-top:
         20px;
@@ -1221,7 +1221,7 @@ img {
 }
 
 
-.prototype-access span {
+.secure-access span {
 
     color:
         var(--blue);
@@ -1238,7 +1238,7 @@ img {
 }
 
 
-.prototype-access p {
+.secure-access p {
 
     margin-top:
         4px;

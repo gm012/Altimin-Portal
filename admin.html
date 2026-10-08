@@ -66,6 +66,9 @@
 
 <style>html.auth-pending body { visibility:hidden; }</style>
 
+<link rel="stylesheet" href="portal-polish.css">
+<link rel="stylesheet" href="cookie-consent.css">
+<script defer src="cookie-consent.js"></script>
 </head>
 
 <body>
@@ -78,7 +81,7 @@
 
     <header class="mobile-topbar">
 
-        <img
+        <a href="index.html" aria-label="Return to portal home"><img
 
             src="images/altimin-logo.png"
 
@@ -86,7 +89,7 @@
 
             class="mobile-logo"
 
-        >
+        ></a>
 
         <button
 
@@ -628,7 +631,7 @@
 
                         type="search"
 
-                        id="clientSearch"
+                        id="clientSearch" aria-label="Search clients"
 
                         placeholder="Search clients..."
 
