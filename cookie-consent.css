@@ -1,0 +1,38 @@
+.cookie-banner { margin: 20px; padding: 20px 24px; border: 1px solid #dfe5ef; border-radius: 16px; background: #fff; color: #344054; font: 14px/1.6 Inter,sans-serif; box-shadow: 0 8px 28px #10254d12; }
+.cookie-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.cookie-actions button, .privacy-dialog button { border: 1px solid #b9ccef; border-radius: 10px; padding: 10px 16px; background: #fff; color: #1558e8; font: 600 13px/1.5 Inter,sans-serif; cursor: pointer; }
+.privacy-dialog { position: fixed; inset: 0; margin: auto; width: min(560px,calc(100% - 32px)); max-height: calc(100dvh - 32px); overflow: auto; padding: 26px; border: 1px solid #dfe5ef; border-radius: 20px; color: #172b4d; background: #fff; font: 14px/1.65 Inter,sans-serif; }
+.privacy-dialog::backdrop { background: #071f5277; }
+.privacy-dialog h2 { font: 600 24px/1.3 Manrope,sans-serif; margin: 0 0 16px; }
+.privacy-dialog h3 { font-size: 15px; margin: 18px 0 8px; }
+.privacy-dialog p { margin: 10px 0; }
+.privacy-dialog label { display: flex; gap: 12px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid #e4e9f2; }
+.privacy-dialog input { margin-top: 6px; accent-color: #1558e8; flex: 0 0 auto; }
+.privacy-dialog small { display: block; color: #586579; }
+.privacy-dialog a { color: #1558e8; text-decoration: underline; }
+@media(min-width:781px) { .admin-main + .cookie-banner, .portal-main + .cookie-banner { margin-left: 290px; } }
+/* Secondary privacy access belongs to the footer/account area, not page content. */
+.privacy-control {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  min-height: 28px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #667085;
+  font: 400 10px/1.5 "Inter", sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+.privacy-control:hover { color: #344054; background: #6670850a; }
+.privacy-control:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+:is(.admin-sidebar, .portal-sidebar) > .privacy-control { color: #a5b2ca; margin-top: 4px; }
+:is(.admin-sidebar, .portal-sidebar) > .privacy-control:hover { color: #d9e2f0; background: #ffffff08; }
+:is(.admin-sidebar, .portal-sidebar) { overflow-y: auto; }
+:is(.admin-sidebar, .portal-sidebar) > * { flex-shrink: 0; }
+@media(max-width:520px) { .login-footer > .privacy-control { align-self: flex-start; padding-left: 0; } }

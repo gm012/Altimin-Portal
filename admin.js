@@ -862,6 +862,7 @@ function renderOverview() {
             )
 
             .join("");
+    if (!state.requests.length) overviewRequestsBody.innerHTML = `<tr><td colspan="4">No requests have been submitted yet.</td></tr>`;
 
 
 
@@ -911,13 +912,13 @@ function renderClients(
 
                     `
 
-                        ${escapeHtml(client.company)}
+                        ${client.company}
 
-                        ${escapeHtml(client.contact)}
+                        ${client.contact}
 
-                        ${escapeHtml(client.email)}
+                        ${client.email}
 
-                        ${escapeHtml(client.region)}
+                        ${client.region}
 
                     `
 
@@ -1089,6 +1090,7 @@ function renderClients(
 
 
 
+    if (!filtered.length) clientsTableBody.innerHTML = `<tr><td colspan="5">No clients match this search. Add a client or try another search.</td></tr>`;
     bindClientRows();
 
 
@@ -1764,9 +1766,7 @@ function openClientManager(
 
             <p>
 
-                Update client information and control which
-
-                Altimin services are active on this account.
+                Update client information and manage the Altimin services assigned to this account.
 
             </p>
 
@@ -1780,7 +1780,7 @@ function openClientManager(
 
         <div
 
-            style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;"
+            class="client-management-actions"
 
         >
 
@@ -1824,7 +1824,7 @@ function openClientManager(
 
     <div
 
-        id="portalInviteStatus"
+        id="portalInviteStatus" role="status"
 
         style="margin:-6px 0 22px;font-size:12px;line-height:1.5;color:#6f7891;"
 
@@ -1842,7 +1842,7 @@ function openClientManager(
 
 
 
-            <label>
+            <label for="fieldCompany">
 
                 COMPANY NAME
 
@@ -1852,7 +1852,7 @@ function openClientManager(
 
             <input
 
-                id="fieldCompany"
+                id="fieldCompany" maxlength="160"
 
                 type="text"
 
@@ -1874,7 +1874,7 @@ function openClientManager(
 
 
 
-            <label>
+            <label for="fieldContact">
 
                 PRIMARY CONTACT
 
@@ -1884,7 +1884,7 @@ function openClientManager(
 
             <input
 
-                id="fieldContact"
+                id="fieldContact" maxlength="160"
 
                 type="text"
 
@@ -1906,7 +1906,7 @@ function openClientManager(
 
 
 
-            <label>
+            <label for="fieldEmail">
 
                 EMAIL ADDRESS
 
@@ -1916,7 +1916,7 @@ function openClientManager(
 
             <input
 
-                id="fieldEmail"
+                id="fieldEmail" maxlength="254"
 
                 type="email"
 
@@ -1938,7 +1938,7 @@ function openClientManager(
 
 
 
-            <label>
+            <label for="fieldRegion">
 
                 REGION
 
@@ -2046,7 +2046,7 @@ function openClientManager(
 
 
 
-            <label>
+            <label for="fieldStatus">
 
                 ACCOUNT STATUS
 
@@ -2298,7 +2298,7 @@ function openClientManager(
 
                 ) {
 
-                    window.alert(
+                    window.altiminNotice(
 
                         "Save the client changes first, then send the portal invitation to the updated email address."
 
@@ -2411,7 +2411,7 @@ function openClientManager(
                     );
 
 
-                    window.alert(
+                    window.altiminNotice(
 
                         error.message ||
 
@@ -2592,7 +2592,7 @@ function renderServices() {
 
                             <span>
 
-                                ${service.category || "SERVICE"}
+                                ${escapeHtml(service.category || "SERVICE")}
 
                             </span>
 
@@ -2621,6 +2621,7 @@ function renderServices() {
             )
 
             .join("");
+    if (!state.services.length) servicesGrid.innerHTML = `<p class="altimin-notice">No services have been added yet.</p>`;
 
 
 
@@ -2713,6 +2714,7 @@ function renderHardware() {
             )
 
             .join("");
+    if (!state.hardware.length) hardwareGrid.innerHTML = `<p class="altimin-notice">No hardware has been added yet.</p>`;
 
 
 
@@ -2806,7 +2808,7 @@ function renderRequests() {
 
                                 class="status-select"
 
-                                data-request-id="${request.id}"
+                                aria-label="Request status for ${escapeHtml(request.title)}" data-request-id="${request.id}"
 
                             >
 
@@ -2871,6 +2873,7 @@ function renderRequests() {
             )
 
             .join("");
+    if (!state.requests.length) requestsTableBody.innerHTML = `<tr><td colspan="5">No requests have been submitted yet.</td></tr>`;
 
 
 
@@ -2969,7 +2972,7 @@ function renderRequests() {
 
 
 
-                            window.alert(
+                            window.altiminNotice(
                                 "The request status could not be updated. Please try again."
                             );
 
@@ -3117,7 +3120,7 @@ function openDrawer(
 
 
 
-                <label>
+                <label for="fieldCompany">
 
                     COMPANY NAME
 
@@ -3127,7 +3130,7 @@ function openDrawer(
 
                 <input
 
-                    id="fieldCompany"
+                    id="fieldCompany" maxlength="160"
 
                     type="text"
 
@@ -3147,7 +3150,7 @@ function openDrawer(
 
 
 
-                <label>
+                <label for="fieldContact">
 
                     PRIMARY CONTACT
 
@@ -3157,7 +3160,7 @@ function openDrawer(
 
                 <input
 
-                    id="fieldContact"
+                    id="fieldContact" maxlength="160"
 
                     type="text"
 
@@ -3177,7 +3180,7 @@ function openDrawer(
 
 
 
-                <label>
+                <label for="fieldEmail">
 
                     EMAIL ADDRESS
 
@@ -3187,7 +3190,7 @@ function openDrawer(
 
                 <input
 
-                    id="fieldEmail"
+                    id="fieldEmail" maxlength="254"
 
                     type="email"
 
@@ -3207,7 +3210,7 @@ function openDrawer(
 
 
 
-                <label>
+                <label for="fieldRegion">
 
                     REGION
 
@@ -3293,7 +3296,7 @@ function openDrawer(
 
 
 
-                <label>
+                <label for="fieldName">
 
                     SERVICE NAME
 
@@ -3303,7 +3306,7 @@ function openDrawer(
 
                 <input
 
-                    id="fieldName"
+                    id="fieldName" maxlength="160"
 
                     type="text"
 
@@ -3323,7 +3326,7 @@ function openDrawer(
 
 
 
-                <label>
+                <label for="fieldCode">
 
                     CODE
 
@@ -3355,7 +3358,7 @@ function openDrawer(
 
 
 
-                <label>
+                <label for="fieldCategory">
 
                     CATEGORY
 
@@ -3365,7 +3368,7 @@ function openDrawer(
 
                 <input
 
-                    id="fieldCategory"
+                    id="fieldCategory" maxlength="100"
 
                     type="text"
 
@@ -3387,7 +3390,7 @@ function openDrawer(
 
 
 
-                <label>
+                <label for="fieldDescription">
 
                     DESCRIPTION
 
@@ -3397,7 +3400,7 @@ function openDrawer(
 
                 <input
 
-                    id="fieldDescription"
+                    id="fieldDescription" maxlength="2000"
 
                     type="text"
 
@@ -3447,7 +3450,7 @@ function openDrawer(
 
 
 
-                <label>
+                <label for="fieldName">
 
                     HARDWARE NAME
 
@@ -3457,7 +3460,7 @@ function openDrawer(
 
                 <input
 
-                    id="fieldName"
+                    id="fieldName" maxlength="160"
 
                     type="text"
 
@@ -3477,7 +3480,7 @@ function openDrawer(
 
 
 
-                <label>
+                <label for="fieldCode">
 
                     CODE
 
@@ -3509,7 +3512,7 @@ function openDrawer(
 
 
 
-                <label>
+                <label for="fieldDescription">
 
                     DESCRIPTION
 
@@ -3519,7 +3522,7 @@ function openDrawer(
 
                 <input
 
-                    id="fieldDescription"
+                    id="fieldDescription" maxlength="2000"
 
                     type="text"
 
@@ -3995,8 +3998,8 @@ drawerForm.addEventListener(
 
 
 
-            window.alert(
-                "The change could not be saved to Supabase. Please try again."
+            window.altiminNotice(
+                "The changes could not be fully confirmed. Some changes may have saved. Refresh and check the record before trying again."
             );
 
         } finally {
@@ -4472,7 +4475,7 @@ if (adminSignOutButton) {
                 );
 
 
-                window.alert("Sign-out failed. Check your connection and try again.");
+                window.altiminNotice("Sign-out failed. Check your connection and try again.");
 
             }
 

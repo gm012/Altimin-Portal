@@ -66,6 +66,9 @@
 
 <style>html.auth-pending body { visibility:hidden; }</style>
 
+<link rel="stylesheet" href="portal-polish.css">
+<link rel="stylesheet" href="cookie-consent.css">
+<script defer src="cookie-consent.js"></script>
 </head>
 
 <body class="portal-body">
@@ -166,7 +169,7 @@
 
             <a
 
-                href="#"
+                href="#dashboard"
 
                 class="sidebar-link active"
 
@@ -328,7 +331,7 @@
 
     ========================================== -->
 
-    <main class="portal-main">
+    <main class="portal-main" id="dashboard">
 
         <header class="dashboard-header">
 
@@ -808,7 +811,7 @@
 
                     id="requestQuantity"
 
-                    min="1"
+                    min="1" max="9999" step="1"
 
                     value="1"
 
@@ -830,7 +833,7 @@
 
                     id="requestDetails"
 
-                    rows="6"
+                    rows="6" maxlength="5000"
 
                     placeholder="Tell us what you need..."
 

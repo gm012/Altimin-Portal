@@ -1582,8 +1582,8 @@ if (requestForm) {
 
 
 
-                window.alert(
-                    "The request could not be submitted to Supabase. Please try again."
+                window.altiminNotice(
+                    "The request could not be confirmed. Check My Requests after refreshing before submitting again."
                 );
 
             } finally {
@@ -1657,7 +1657,7 @@ if (signOutButton) {
                 );
 
 
-                window.alert("Sign-out failed. Check your connection and try again."); signOutButton.disabled = false;
+                window.altiminNotice("Sign-out failed. Check your connection and try again."); signOutButton.disabled = false;
 
             }
 
@@ -1828,8 +1828,8 @@ async function initialiseDashboardPage() {
         if (context.membership.role === "admin") {
             const indicator = document.createElement("div");
             indicator.textContent = "ADMIN PREVIEW";
-            indicator.style.cssText = "position:fixed;top:8px;right:16px;z-index:1000;background:#102d55;color:white;padding:8px 14px;border-radius:8px;font:12px Arial";
-            document.body.append(indicator);
+            indicator.className = "admin-preview";
+            document.querySelector(".portal-main").prepend(indicator);
         }
         authenticatedIdentity =
             context.identity;
